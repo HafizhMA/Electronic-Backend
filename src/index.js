@@ -7,7 +7,7 @@ dotenv.config();
 const PORT = process.env.PORT;
 
 app.get("/api", (req, res) => {
-    res.send("hallo gais");
+    res.send("hallo");
 });
 
 app.listen(PORT,() =>{
