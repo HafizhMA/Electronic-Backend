@@ -15,6 +15,7 @@ app.get("/api", (req, res) => {
 });
 
 app.get("/products", async (req,res) => {
+    // select * from product
     const products = await prisma.product.findMany();
 
     res.send(products);
