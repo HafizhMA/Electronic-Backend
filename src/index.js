@@ -51,7 +51,7 @@ app.post("/products", async (req, res) => {
 });
 
 app.patch("/products/:id", async (req, res) => {
-  const productId = parseInt(req.params.id);
+  const productId = req.params.id;
   const updatedProductData = req.body;
 
   try {
@@ -81,7 +81,7 @@ app.patch("/products/:id", async (req, res) => {
 });
 
 app.delete("/products/:id", async (req, res) => {
-  const productId = parseInt(req.params.id);
+  const productId = req.params.id;
 
   try {
     await prisma.product.delete({
@@ -100,6 +100,7 @@ app.delete("/products/:id", async (req, res) => {
     });
   }
 });
+
 
 app.listen(PORT, () => {
   console.log(`express api running on port ${PORT}`);
