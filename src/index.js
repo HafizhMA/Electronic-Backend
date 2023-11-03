@@ -25,7 +25,7 @@ app.get("/products", async (req, res) => {
 app.post("/products", async (req, res) => {
   const newProductData = req.body;
 
-  // Check if any required field is missing
+  // Check jika field missing atau kosong
   if (!newProductData.namaBarang || !newProductData.deskripsiBarang || !newProductData.hargaBarang || !newProductData.quantity) {
     return res.status(400).send({
       status: 400,
@@ -62,7 +62,7 @@ app.patch("/products/:id", async (req, res) => {
   const productId = req.params.id;
   const updatedProductData = req.body;
 
-  // Check if any required field is missing
+  // Check jika field missing atau kosong
   if (!updatedProductData.namaBarang || !updatedProductData.deskripsiBarang || !updatedProductData.hargaBarang || !updatedProductData.quantity) {
     return res.status(400).send({
       status: 400,
