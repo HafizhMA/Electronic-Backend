@@ -25,6 +25,14 @@ app.get("/products", async (req, res) => {
 app.post("/products", async (req, res) => {
   const newProductData = req.body;
 
+  // Check if any required field is missing
+  if (!newProductData.namaBarang || !newProductData.deskripsiBarang || !newProductData.hargaBarang || !newProductData.quantity) {
+    return res.status(400).send({
+      status: 400,
+      message: "Bad Request: Missing required data",
+    });
+  }
+
   try {
     const product = await prisma.product.create({
       data: {
@@ -54,6 +62,14 @@ app.patch("/products/:id", async (req, res) => {
   const productId = req.params.id;
   const updatedProductData = req.body;
 
+  // Check if any required field is missing
+  if (!updatedProductData.namaBarang || !updatedProductData.deskripsiBarang || !updatedProductData.hargaBarang || !updatedProductData.quantity) {
+    return res.status(400).send({
+      status: 400,
+      message: "Bad Request: Missing required data",
+    });
+  }
+
   try {
     const updatedProduct = await prisma.product.update({
       where: { id: productId },
@@ -79,6 +95,7 @@ app.patch("/products/:id", async (req, res) => {
     });
   }
 });
+
 
 app.delete("/products/:id", async (req, res) => {
   const productId = req.params.id;
