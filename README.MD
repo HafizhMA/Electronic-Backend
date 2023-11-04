@@ -25,13 +25,13 @@ npm run dev
 **GET ALL:** 
 
 ```bash
-http://localhost:{port}/products
+http://localhost:{PORT}/products
 ```
 
 **POST:** 
 
 ```bash
-http://localhost:{port}/products
+http://localhost:{PORT}/products
 ```
 
 **DELETE:** 
