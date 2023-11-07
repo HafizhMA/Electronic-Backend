@@ -17,6 +17,26 @@ exports.getProducts = async (req, res) => {
   }
 };
 
+exports.getOneProduct = async (req, res) => {
+  const { id } = req.params; // Assuming the product ID is in the request parameters
+
+  const product = await prisma.product.findUnique({
+    where: { id },
+  });
+
+  if (product) {
+    return res.json({
+      status: 200,
+      data: product,
+    });
+  } else {
+    return res.status(404).json({
+      status: 404,
+      message: "No such data",
+    });
+  }
+};
+
 // Create a new product
 exports.createProduct = async (req, res) => {
   const newProductData = req.body;
