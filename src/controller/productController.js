@@ -7,10 +7,10 @@ const prisma = new PrismaClient();
 exports.getProducts = async (req, res) => {
   try {
     const products = await prisma.product.findMany();
-    res.send(products);
+    res.json(products);
   } catch (error) {
     console.error("Error fetching products:", error);
-    res.status(500).send({
+    res.json({
       status: 500,
       message: "Internal server error",
     });
@@ -30,7 +30,7 @@ exports.getOneProduct = async (req, res) => {
       data: product,
     });
   } else {
-    return res.status(404).json({
+    return res.json({
       status: 404,
       message: "No such data",
     });
@@ -42,7 +42,7 @@ exports.createProduct = async (req, res) => {
   const newProductData = req.body;
 
   if (!newProductData.namaBarang || !newProductData.deskripsiBarang || !newProductData.hargaBarang || !newProductData.quantity) {
-    return res.status(400).send({
+    return res.json({
       status: 400,
       message: "Bad Request: Missing required data",
     });
@@ -59,14 +59,14 @@ exports.createProduct = async (req, res) => {
       },
     });
 
-    res.status(201).send({
+    res.json({
       status: 201,
       data: product,
       message: "Data successfully posted",
     });
   } catch (error) {
     console.error("Error creating product:", error);
-    res.status(500).send({
+    res.json({
       status: 500,
       message: "Internal server error",
     });
@@ -79,7 +79,7 @@ exports.updateProduct = async (req, res) => {
   const updatedProductData = req.body;
 
   if (!updatedProductData.namaBarang || !updatedProductData.deskripsiBarang || !updatedProductData.hargaBarang || !updatedProductData.quantity) {
-    return res.status(400).send({
+    return res.json({
       status: 400,
       message: "Bad Request: Missing required data",
     });
@@ -97,14 +97,14 @@ exports.updateProduct = async (req, res) => {
       },
     });
 
-    res.send({
+    res.json({
       status: 200,
       data: updatedProduct,
       message: "Data successfully updated",
     });
   } catch (error) {
     console.error("Error updating product:", error);
-    res.status(500).send({
+    res.json({
       status: 500,
       message: "Internal server error",
     });
@@ -120,13 +120,13 @@ exports.deleteProduct = async (req, res) => {
       where: { id: productId },
     });
 
-    res.send({
+    res.json({
       status: 200,
       message: "Data successfully deleted",
     });
   } catch (error) {
     console.error("Error deleting product:", error);
-    res.status(500).send({
+    res.json({
       status: 500,
       message: "Internal server error",
     });
