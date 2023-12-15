@@ -11,10 +11,17 @@ datasource db {
 }
 
 model Product {
-  id              String @id @default(uuid())
-  namaBarang      String
-  deskripsiBarang String
-  img             String
-  hargaBarang     Int
-  quantity        Int
+  id               String @id @default(uuid())
+  namaBarang       String
+  deskripsiBarang  String
+  img              String
+  hargaBarang      Int
+  quantity         Int
+  size             String
+  color            String
+  berat            String
+  features         String
+  capacity         String
+  powerConsumption String
+  dimensi          String
 }

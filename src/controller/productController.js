@@ -41,34 +41,22 @@ exports.getOneProduct = async (req, res) => {
 exports.createProduct = async (req, res) => {
   const newProductData = req.body;
 
-  if (!newProductData.namaBarang || !newProductData.deskripsiBarang || !newProductData.hargaBarang || !newProductData.quantity) {
-    return res.json({
-      status: 400,
-      message: "Bad Request: Missing required data",
-    });
-  }
-
   try {
     const product = await prisma.product.create({
-      data: {
-        namaBarang: newProductData.namaBarang,
-        deskripsiBarang: newProductData.deskripsiBarang,
-        img: newProductData.img,
-        hargaBarang: newProductData.hargaBarang,
-        quantity: newProductData.quantity,
-      },
+      data: newProductData, // Use the entire data object directly
     });
 
-    res.json({
+    res.status(201).json({
       status: 201,
       data: product,
       message: "Data successfully posted",
     });
   } catch (error) {
     console.error("Error creating product:", error);
-    res.json({
+    res.status(500).json({
       status: 500,
-      message: "Internal server error",
+      message: "Failed to create product",
+      error: error.message // Send detailed error message for debugging
     });
   }
 };
@@ -78,35 +66,23 @@ exports.updateProduct = async (req, res) => {
   const productId = req.params.id;
   const updatedProductData = req.body;
 
-  if (!updatedProductData.namaBarang || !updatedProductData.deskripsiBarang || !updatedProductData.hargaBarang || !updatedProductData.quantity) {
-    return res.json({
-      status: 400,
-      message: "Bad Request: Missing required data",
-    });
-  }
-
   try {
     const updatedProduct = await prisma.product.update({
       where: { id: productId },
-      data: {
-        namaBarang: updatedProductData.namaBarang,
-        deskripsiBarang: updatedProductData.deskripsiBarang,
-        img: updatedProductData.img,
-        hargaBarang: updatedProductData.hargaBarang,
-        quantity: updatedProductData.quantity,
-      },
+      data: updatedProductData,
     });
 
-    res.json({
+    res.status(200).json({
       status: 200,
       data: updatedProduct,
       message: "Data successfully updated",
     });
   } catch (error) {
     console.error("Error updating product:", error);
-    res.json({
+    res.status(500).json({
       status: 500,
-      message: "Internal server error",
+      message: "Failed to update product",
+      error: error.message // Send detailed error message for debugging
     });
   }
 };
