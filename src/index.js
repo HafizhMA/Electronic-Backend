@@ -14,6 +14,9 @@ app.use(express.json());
 const productRoutes = require("./routes/productRoutes");
 app.use(productRoutes);
 
+const userRoutes = require("./routes/userRoutes");
+app.use(userRoutes);
+
 app.get("/api", (req, res) => {
   res.send("hallo");
 });
