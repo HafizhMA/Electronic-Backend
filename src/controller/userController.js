@@ -13,7 +13,7 @@ exports.register = async (req,res) => {
     const {email, password} = req.body;
 
     if(!email || !password){
-        return res.status(400).json({error: 'semua harus diisi'})
+        return res.status(400).json({error: 'semua form harus diisi'})
     }
 
     try{
@@ -33,6 +33,8 @@ exports.register = async (req,res) => {
                 password: hashedPassword
             }
         })
+
+        console.log(newUser);
 
         const token = jwt.sign({userId: newUser.id}, secret, {expiresIn: '1h'});
         res.json({
