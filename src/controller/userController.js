@@ -163,7 +163,7 @@ exports.forgotPassword = async (req, res) => {
     // function send email
     // params1: nama user
     // params2: email user
-    const response = await sendEmailForgotPassword(checkUser.email, resetPasswordToken, checkUser.email)
+    const response = await sendEmailForgotPassword(checkUser.email, `update-password/${resetPasswordToken}`, checkUser.email)
 
     if (response) {
       return res.json({ message: 'Email berhasil terkirim!' })
@@ -212,35 +212,42 @@ exports.checkToken = async (req, res) => {
 
 // Update Password
 exports.updatePassword = async (req, res) => {
-  const { userId, password } = req.body;
+  const { token } = req.params;
+  const { password } = req.body;
 
   try {
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-    })
+    const decode = jwt.verify(token, process.env.JWT_SECRET);
+    console.log(decode);
 
-    if (!user) {
-      return res.status(400).json({ error: 'User not found' })
+    const user = await prisma.user.findUnique({
+      where: {
+        id: decode.userId
+      },
+    });
+
+    if (!user || !user.token_reset_password || user.token_reset_password !== token) {
+      return res.status(400).json({ error: 'Invalid or expired token' });
     }
 
-    const saltRounds = 10
-    const hashedNewPassword = await bcrypt.hash(password, saltRounds)
+    const saltRounds = 10;
+    const hashedNewPassword = await bcrypt.hash(password, saltRounds);
 
     await prisma.user.update({
-      where: { id: userId },
+      where: { id: decode.userId },
       data: {
         password: hashedNewPassword,
         token_reset_password: null,
       },
-    })
+    });
 
     res.json({
       status: true,
       message: 'Password Updated Successful'
-    })
+    });
   } catch (error) {
-    console.error(error)
-    res.status(400).json({ error: 'Password Updated Failed' })
+    console.error(error);
+    res.status(400).json({ error: 'Password Update Failed' });
   }
-}
+};
+
 
