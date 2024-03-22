@@ -8,6 +8,6 @@ router.get("/getUserByEmail/:email", userController.getUserByEmail);
 router.post("/login", userController.login);
 router.post("/forgot-password", userController.forgotPassword);
 router.post("/check-token", userController.checkToken);
-router.post("/update-password", userController.updatePassword);
+router.post("/update-password/:token", userController.updatePassword);
 
 module.exports = router;
