@@ -163,7 +163,8 @@ exports.forgotPassword = async (req, res) => {
     // function send email
     // params1: nama user
     // params2: email user
-    const response = await sendEmailForgotPassword(checkUser.email, `update-password/${resetPasswordToken}`, checkUser.email)
+    const response = await sendEmailForgotPassword(checkUser.email,
+      `http://127.0.0.1:5173/update-password/${resetPasswordToken}`, checkUser.email)
 
     if (response) {
       return res.json({ message: 'Email berhasil terkirim!' })
