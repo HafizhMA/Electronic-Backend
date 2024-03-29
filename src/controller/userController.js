@@ -66,20 +66,14 @@ exports.login = async (req, res) => {
     }
 
     // Pastikan checkUser tidak kosong sebelum mencoba membandingkan password
-    if (checkUser.password) {
-      const matchPassword = await bcrypt.compare(password, checkUser.password);
-      if (matchPassword) {
-        const token = jwt.sign({ userId: checkUser.id }, secret, {
-          expiresIn: "1h",
-        });
-        return res.json({ message: "Login berhasil", checkUser, token });
-      } else {
-        return res.status(401).json({ error: "password salah" });
-      }
+    const matchPassword = await bcrypt.compare(password, checkUser.password);
+    if (matchPassword) {
+      const token = jwt.sign({ userId: checkUser.id }, secret, {
+        expiresIn: "1h",
+      });
+      return res.json({ message: "Login berhasil", checkUser, token });
     } else {
-      return res
-        .status(400)
-        .json({ error: "password tidak ditemukan atau kosong" });
+      return res.status(401).json({ error: "password salah" });
     }
   } catch (error) {
     console.log(error);
