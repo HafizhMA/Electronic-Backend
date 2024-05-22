@@ -2,6 +2,7 @@
 
 const express = require("express");
 const productController = require("../controller/productController");
+const authenticateToken = require("../middlewares/protectRouteMiddleware");
 
 const router = express.Router();
 
