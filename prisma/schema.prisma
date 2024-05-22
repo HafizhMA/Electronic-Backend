@@ -32,4 +32,6 @@ model Product {
   capacity         String
   powerConsumption String
   dimensi          String
+  kategori         String
+  diskon           Int
 }

@@ -11,12 +11,14 @@ async function main() {
         hargaBarang: 300000,
         quantity: 1,
         size: "tes",
-        color: "tes",            
-        berat: "tes",            
-        features: "tes",        
-        capacity: "tes",         
-        powerConsumption: "tes", 
-        dimensi: "tes",         
+        color: "tes",
+        berat: "tes",
+        features: "tes",
+        capacity: "tes",
+        powerConsumption: "tes",
+        dimensi: "tes",
+        kategori: "Camera",
+        diskon: 20
       },
       {
         namaBarang: "Handphone",
@@ -25,12 +27,14 @@ async function main() {
         hargaBarang: 500000,
         quantity: 1,
         size: "tes",
-        color: "tes",            
-        berat: "tes",            
-        features: "tes",        
-        capacity: "tes",         
-        powerConsumption: "tes", 
-        dimensi: "tes", 
+        color: "tes",
+        berat: "tes",
+        features: "tes",
+        capacity: "tes",
+        powerConsumption: "tes",
+        dimensi: "tes",
+        kategori: "Handphone",
+        diskon: 20
       },
       {
         namaBarang: "Keyboard",
@@ -39,12 +43,14 @@ async function main() {
         hargaBarang: 100000,
         quantity: 1,
         size: "tes",
-        color: "tes",            
-        berat: "tes",            
-        features: "tes",        
-        capacity: "tes",         
-        powerConsumption: "tes", 
-        dimensi: "tes", 
+        color: "tes",
+        berat: "tes",
+        features: "tes",
+        capacity: "tes",
+        powerConsumption: "tes",
+        dimensi: "tes",
+        kategori: "Keyboard",
+        diskon: 20
       },
       {
         namaBarang: "Laptop",
@@ -53,12 +59,14 @@ async function main() {
         hargaBarang: 1500000,
         quantity: 1,
         size: "tes",
-        color: "tes",            
-        berat: "tes",            
-        features: "tes",        
-        capacity: "tes",         
-        powerConsumption: "tes", 
-        dimensi: "tes", 
+        color: "tes",
+        berat: "tes",
+        features: "tes",
+        capacity: "tes",
+        powerConsumption: "tes",
+        dimensi: "tes",
+        kategori: "Laptop",
+        diskon: 20
       },
       {
         namaBarang: "Monitor",
@@ -67,12 +75,14 @@ async function main() {
         hargaBarang: 700000,
         quantity: 1,
         size: "tes",
-        color: "tes",            
-        berat: "tes",            
-        features: "tes",        
-        capacity: "tes",         
-        powerConsumption: "tes", 
-        dimensi: "tes", 
+        color: "tes",
+        berat: "tes",
+        features: "tes",
+        capacity: "tes",
+        powerConsumption: "tes",
+        dimensi: "tes",
+        kategori: "Monitor",
+        diskon: 20
       },
       {
         namaBarang: "Mouse",
@@ -81,23 +91,26 @@ async function main() {
         hargaBarang: 80000,
         quantity: 1,
         size: "tes",
-        color: "tes",            
-        berat: "tes",            
-        features: "tes",        
-        capacity: "tes",         
-        powerConsumption: "tes", 
-        dimensi: "tes", 
+        color: "tes",
+        berat: "tes",
+        features: "tes",
+        capacity: "tes",
+        powerConsumption: "tes",
+        dimensi: "tes",
+        kategori: "Mouse",
+        diskon: 20
       },
     ]
-    },
-  )}
+  },
+  )
+}
 
 main()
-.then(async () => {
-  await prisma.$disconnect()
-})
-.catch(async (e) => {
-  console.error(e)
-  await prisma.$disconnect()
-  process.exit(1)
-})
+  .then(async () => {
+    await prisma.$disconnect()
+  })
+  .catch(async (e) => {
+    console.error(e)
+    await prisma.$disconnect()
+    process.exit(1)
+  })

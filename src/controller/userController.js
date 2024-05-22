@@ -62,7 +62,7 @@ exports.login = async (req, res) => {
     });
 
     if (!checkUser) {
-      return res.status(400).json({ error: "email salah" });
+      return res.status(400).json({ error: "user tidak ditemukan" });
     }
 
     // Pastikan checkUser tidak kosong sebelum mencoba membandingkan password
