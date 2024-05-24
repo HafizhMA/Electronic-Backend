@@ -108,3 +108,44 @@ exports.deleteProduct = async (req, res) => {
     });
   }
 };
+
+exports.postOneCart = async (req, res) => {
+  const { userId, productId } = req.body;
+  try {
+    // Cek apakah produk sudah ada di keranjang pengguna
+    const existingCartItem = await prisma.cartItem.findFirst({
+      where: {
+        userId: userId,
+        productId: productId,
+      },
+    });
+
+    let cartItem;
+    if (existingCartItem) {
+      // Jika produk sudah ada di keranjang, tambahkan kuantitasnya
+      cartItem = await prisma.cartItem.update({
+        where: {
+          id: existingCartItem.id,
+        },
+        data: {
+          quantity: existingCartItem.quantity + 1,
+        },
+      });
+    } else {
+      // Jika produk belum ada di keranjang, buat item keranjang baru
+      cartItem = await prisma.cartItem.create({
+        data: {
+          userId,
+          productId,
+          quantity: 1,
+        },
+      });
+    }
+
+    res.status(200).json({ cartItem, message: 'Successfully added product to cart' });
+  } catch (error) {
+    console.error(error);
+    res.status(400).json({ error: 'An error occurred while adding product to cart' });
+  }
+};
+

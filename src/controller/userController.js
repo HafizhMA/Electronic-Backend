@@ -16,6 +16,10 @@ exports.register = async (req, res) => {
     return res.status(400).json({ error: "semua form harus diisi" });
   }
 
+  if (password.length < 6) {
+    return res.status(400).json({ error: "password terlalu pendek" })
+  }
+
   try {
     const duplicateUser = await prisma.user.findUnique({
       where: { email },
@@ -37,7 +41,7 @@ exports.register = async (req, res) => {
     console.log(newUser);
 
     const token = jwt.sign({ userId: newUser.id }, secret, { expiresIn: "1h" });
-    res.json({
+    res.status(200).json({
       message: "registrasi sukses",
       user: newUser,
       token,
