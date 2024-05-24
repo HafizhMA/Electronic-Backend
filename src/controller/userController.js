@@ -41,7 +41,7 @@ exports.register = async (req, res) => {
     console.log(newUser);
 
     const token = jwt.sign({ userId: newUser.id }, secret, { expiresIn: "1h" });
-    res.json({
+    res.status(200).json({
       message: "registrasi sukses",
       user: newUser,
       token,

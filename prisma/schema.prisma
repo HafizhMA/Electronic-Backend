@@ -11,15 +11,16 @@ datasource db {
 }
 
 model User {
-  id                   String  @id @default(uuid())
-  email                String  @unique
+  id                   String    @id @default(uuid())
+  email                String    @unique
   password             String
   no_telp              String?
   token_reset_password String?
+  product              Product[]
 }
 
 model Product {
-  id               String @id @default(uuid())
+  id               String  @id @default(uuid())
   namaBarang       String
   deskripsiBarang  String
   img              String
@@ -34,4 +35,6 @@ model Product {
   dimensi          String
   kategori         String
   diskon           Int
+  User             User?   @relation(fields: [userId], references: [id])
+  userId           String?
 }

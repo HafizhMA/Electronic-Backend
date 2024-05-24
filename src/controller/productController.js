@@ -108,3 +108,21 @@ exports.deleteProduct = async (req, res) => {
     });
   }
 };
+
+exports.postOneCart = async (req, res) => {
+  const { userId, productId } = req.body;
+  try {
+    const cart = await prisma.product.update({
+      where: { id: productId },
+      data: {
+        User: {
+          connect: { id: userId }
+        }
+      }
+    })
+    res.status(200).json({ cart, message: 'successfully add product to cart' })
+  } catch (error) {
+    console.log(error);
+    res.status(400).json({ error: 'An error occurred while adding product to cart' })
+  }
+}
