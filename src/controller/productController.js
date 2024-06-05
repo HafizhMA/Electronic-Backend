@@ -153,19 +153,26 @@ exports.getProductCart = async (req, res) => {
   try {
     const cart = await prisma.cartItem.findMany({
       include: {
-        product: true,
-        user: true,
+        product: {
+          include: {
+            user: true // Ini akan menyertakan informasi pengguna untuk setiap produk
+          }
+        },
+        user: true // Ini akan menyertakan informasi pengguna untuk setiap keranjang belanja
       }
-    })
+    });
+
     return res.status(200).json({
       cart,
-      message: 'berhasil get cart'
-    })
+      message: 'Berhasil mendapatkan keranjang belanja'
+    });
   } catch (error) {
+    console.error(error);
     res.status(404).json({
-      error: 'gagal get cart'
-    })
+      error: 'Gagal mendapatkan keranjang belanja'
+    });
   }
 };
+
 
 
