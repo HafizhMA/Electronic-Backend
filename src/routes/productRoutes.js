@@ -15,5 +15,6 @@ router.delete("/products/:id", productController.deleteProduct);
 router.post("/addToCart", productController.postOneCart);
 router.get("/getcarts", productController.getProductCart);
 router.patch("/cart/increment/:id", productController.incrementCartItemQuantity);
+router.patch("/cart/decrement/:id", productController.decrementCartItemQuantity)
 
 module.exports = router;

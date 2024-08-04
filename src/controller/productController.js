@@ -174,6 +174,7 @@ exports.getProductCart = async (req, res) => {
   }
 };
 
+// Increment Cart Item Quantity
 exports.incrementCartItemQuantity = async (req, res) => {
   const { id } = req.params;  // ID sudah dalam bentuk string
 
@@ -193,12 +194,46 @@ exports.incrementCartItemQuantity = async (req, res) => {
       data: { quantity: cartItem.quantity + 1 }
     });
 
-    res.status(200).json({ updatedCartItem, message: 'Quantity updated successfully' });
+    return res.status(200).json({ updatedCartItem, message: 'Quantity updated successfully' });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Failed to update quantity' });
+    return res.status(500).json({ error: 'Failed to update quantity' });
   }
 };
+
+// Decrement Cart Item Quantity
+exports.decrementCartItemQuantity = async (req, res) => {
+  const { id } = req.params;  // Konsisten menggunakan req.params untuk ID
+
+  try {
+    const cartItem = await prisma.cartItem.findUnique({
+      where: { id },
+    });
+
+    if (!cartItem) {
+      return res.status(404).json({ error: 'No such product' });
+    }
+
+    if (cartItem.quantity > 1) {
+      // Update quantity
+      const updatedCartItem = await prisma.cartItem.update({
+        where: { id },
+        data: { quantity: cartItem.quantity - 1 }
+      });
+      return res.status(200).json({ updatedCartItem, message: 'Quantity updated successfully' });
+    } else {
+      // Delete the cart item if quantity is 1 or less
+      await prisma.cartItem.delete({
+        where: { id }
+      });
+      return res.status(200).json({ message: 'Cart item has been deleted' });
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Failed to update quantity' });
+  }
+};
+
 
 exports.searchProduct = async (req, res) => {
   const { query } = req.query;
