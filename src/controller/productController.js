@@ -120,10 +120,9 @@ exports.postOneCart = async (req, res) => {
       },
     });
 
-    let cartItem;
     if (existingCartItem) {
       // Jika produk sudah ada di keranjang, tambahkan kuantitasnya
-      cartItem = await prisma.cartItem.update({
+      await prisma.cartItem.update({
         where: {
           id: existingCartItem.id,
         },
@@ -131,18 +130,22 @@ exports.postOneCart = async (req, res) => {
           quantity: existingCartItem.quantity + 1,
         },
       });
+      res.json({
+        status: '200',
+        message: 'Successfully add 1 quantity'
+      })
     } else {
       // Jika produk belum ada di keranjang, buat item keranjang baru
-      cartItem = await prisma.cartItem.create({
+      const cartItem = await prisma.cartItem.create({
         data: {
           userId,
           productId,
           quantity: 1,
         },
       });
+      res.status(200).json({ cartItem, message: 'Successfully added product to cart' });
     }
 
-    res.status(200).json({ cartItem, message: 'Successfully added product to cart' });
   } catch (error) {
     console.error(error);
     res.status(400).json({ error: 'An error occurred while adding product to cart' });
@@ -233,6 +236,35 @@ exports.decrementCartItemQuantity = async (req, res) => {
     return res.status(500).json({ error: 'Failed to update quantity' });
   }
 };
+
+exports.deleteOneCart = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const products = await prisma.cartItem.findUnique({
+      where: { id }
+    })
+
+    if (products) {
+      const deleteProduct = await prisma.cartItem.delete({
+        where: { id }
+      })
+      res.status(200).json({
+        deleteProduct, message: 'delete one product'
+      })
+    } else {
+      res.json({
+        status: '404',
+        message: 'product not found'
+      })
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      message: 'failed to delete product'
+    })
+  }
+}
 
 
 exports.searchProduct = async (req, res) => {
