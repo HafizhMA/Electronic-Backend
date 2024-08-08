@@ -162,7 +162,10 @@ exports.getProductCart = async (req, res) => {
           }
         },
         user: true // Ini akan menyertakan informasi pengguna untuk setiap keranjang belanja
-      }
+      },
+      orderBy: {
+        createdAt: 'asc' // Mengurutkan berdasarkan createdAt dalam urutan ascending
+      },
     });
 
     return res.status(200).json({
