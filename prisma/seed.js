@@ -3,7 +3,7 @@ const prisma = new PrismaClient()
 
 async function main() {
 
-  const userId = "be6ba951-fd9c-44a5-878c-1ccaa9c2abf3";
+  const userId = "a786f47a-19ff-4079-bff4-6b1bda1a5ad4";
 
   const existingUser = await prisma.user.findUnique({
     where: {
@@ -16,7 +16,7 @@ async function main() {
     await prisma.product.createMany({
       data: [
         {
-          namaBarang: "Camera",
+          namaBarang: "Camera toko cihuy",
           deskripsiBarang: "ini adalah Camera",
           img: "https://images.unsplash.com/photo-1502920917128-1aa500764cbd?auto=format&fit=crop&q=80&w=1770&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
           hargaBarang: 300000,
@@ -33,7 +33,7 @@ async function main() {
           userId: userId
         },
         {
-          namaBarang: "Handphone",
+          namaBarang: "Handphone toko cihuy",
           deskripsiBarang: "ini adalah Handphone",
           img: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&q=80&w=1780&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
           hargaBarang: 500000,
@@ -50,7 +50,7 @@ async function main() {
           userId: userId
         },
         {
-          namaBarang: "Keyboard",
+          namaBarang: "Keyboard toko cihuy",
           deskripsiBarang: "ini adalah Keyboard",
           img: "https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&q=80&w=1765&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
           hargaBarang: 100000,
@@ -67,7 +67,7 @@ async function main() {
           userId: userId
         },
         {
-          namaBarang: "Laptop",
+          namaBarang: "Laptop toko cihuy",
           deskripsiBarang: "ini adalah Laptop",
           img: "https://images.unsplash.com/photo-1504707748692-419802cf939d?auto=format&fit=crop&q=80&w=2047&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
           hargaBarang: 1500000,
@@ -84,7 +84,7 @@ async function main() {
           userId: userId
         },
         {
-          namaBarang: "Monitor",
+          namaBarang: "Monitor toko cihuy",
           deskripsiBarang: "ini adalah Monitor",
           img: "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?auto=format&fit=crop&q=80&w=1770&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
           hargaBarang: 700000,
@@ -101,7 +101,7 @@ async function main() {
           userId: userId
         },
         {
-          namaBarang: "Mouse",
+          namaBarang: "Mouse toko cihuy",
           deskripsiBarang: "ini adalah Mouse",
           img: "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?auto=format&fit=crop&q=80&w=1767&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
           hargaBarang: 80000,
