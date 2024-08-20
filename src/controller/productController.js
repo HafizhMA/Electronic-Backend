@@ -158,13 +158,13 @@ exports.getProductCart = async (req, res) => {
       include: {
         product: {
           include: {
-            user: true // Ini akan menyertakan informasi pengguna untuk setiap produk
+            user: true,
           }
         },
-        user: true // Ini akan menyertakan informasi pengguna untuk setiap keranjang belanja
+        user: true
       },
       orderBy: {
-        createdAt: 'asc' // Mengurutkan berdasarkan createdAt dalam urutan ascending
+        createdAt: 'asc'
       },
     });
 
@@ -179,6 +179,105 @@ exports.getProductCart = async (req, res) => {
     });
   }
 };
+
+exports.getCheckout = async (req, res) => {
+  const { userId, items } = req.body;
+
+  if (!userId || !items || items.length === 0) {
+    return res.status(400).json({ message: "Invalid request, missing userId or items." });
+  }
+
+  try {
+    // Find any existing checkout associated with the items
+    const existingCheckout = await prisma.cartItem.findFirst({
+      where: {
+        id: { in: items.map(item => item.cartItemId) },
+        checkoutId: {
+          not: null,
+        }
+      },
+      include: {
+        checkout: true
+      }
+    });
+
+    if (existingCheckout) {
+      // Delete the existing checkout
+      await prisma.checkout.delete({
+        where: { id: existingCheckout.checkoutId },
+      });
+
+      // Clear the checkoutId for the associated cart items
+      await prisma.cartItem.updateMany({
+        where: {
+          checkoutId: existingCheckout.checkoutId,
+        },
+        data: {
+          checkoutId: null,
+        },
+      });
+    }
+
+    // Create a new checkout
+    const checkout = await prisma.checkout.create({
+      data: {
+        userId,
+        items: {
+          connect: items.map(item => ({ id: item.cartItemId }))  // Correctly map cart item IDs
+        }
+      }
+    });
+
+    // Update the cart items with the new checkoutId
+    await prisma.cartItem.updateMany({
+      where: {
+        id: { in: items.map(item => item.cartItemId) },  // Ensure IDs are correctly handled
+      },
+      data: {
+        checkoutId: checkout.id,
+      },
+    });
+
+    res.status(200).json({
+      checkout,
+      message: 'Checkout success'
+    });
+  } catch (error) {
+    console.error('Error during checkout', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+exports.getProductCheckout = async (req, res) => {
+  const { userId } = req.body;
+
+  try {
+    const checkoutProduct = await prisma.checkout.findMany({
+      where: {
+        userId
+      },
+      include: {
+        items: {
+          include: {
+            product: true
+          }
+        }
+      }
+    })
+
+    res.status(200).json({
+      checkoutProduct,
+      message: 'successfully get checkout product'
+    })
+  } catch (error) {
+    console.error('failed get checkout product', error)
+    res.status(400).json({
+      msg: 'failed to get checkout product'
+    })
+  }
+
+}
+
 
 // Increment Cart Item Quantity
 exports.incrementCartItemQuantity = async (req, res) => {
@@ -268,7 +367,6 @@ exports.deleteOneCart = async (req, res) => {
     })
   }
 }
-
 
 exports.searchProduct = async (req, res) => {
   const { query } = req.query;

@@ -14,6 +14,8 @@ router.patch("/products/:id", productController.updateProduct);
 router.delete("/products/:id", productController.deleteProduct);
 router.post("/addToCart", productController.postOneCart);
 router.get("/getcarts", productController.getProductCart);
+router.post("/getCheckout", productController.getCheckout);
+router.get("/getCheckoutProduct", productController.getProductCheckout)
 router.patch("/cart/increment/:id", productController.incrementCartItemQuantity);
 router.patch("/cart/decrement/:id", productController.decrementCartItemQuantity);
 router.delete('/cart/delete/:id', productController.deleteOneCart)
