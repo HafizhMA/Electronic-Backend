@@ -19,6 +19,9 @@ app.use(productRoutes);
 const userRoutes = require("./routes/userRoutes");
 app.use(userRoutes);
 
+const rajaOngkirRoutes = require("./routes/rajaOngkirRoutes");
+app.use(rajaOngkirRoutes);
+
 app.get("/api", (req, res) => {
   res.send("hallo");
 });

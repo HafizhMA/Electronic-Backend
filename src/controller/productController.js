@@ -109,6 +109,37 @@ exports.deleteProduct = async (req, res) => {
   }
 };
 
+exports.searchProduct = async (req, res) => {
+  const { query } = req.query;
+
+  try {
+    const products = await prisma.product.findMany({
+      where: {
+        namaBarang: {
+          contains: query,
+          mode: 'insensitive',
+        },
+      },
+    });
+
+    if (products.length === 0) {
+      return res.json({
+        status: 404,
+        message: 'No such nama barang',
+      });
+    }
+
+    res.status(200).json(products);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      status: 500,
+      message: 'Failed to fetch products',
+    });
+  }
+};
+
+// cart controller
 exports.postOneCart = async (req, res) => {
   const { userId, productId } = req.body;
   try {
@@ -180,6 +211,96 @@ exports.getProductCart = async (req, res) => {
   }
 };
 
+exports.incrementCartItemQuantity = async (req, res) => {
+  const { id } = req.params;  // ID sudah dalam bentuk string
+
+  try {
+    // Find the cart item using the string ID
+    const cartItem = await prisma.cartItem.findUnique({
+      where: { id }  // Gunakan ID sebagai string
+    });
+
+    if (!cartItem) {
+      return res.status(404).json({ error: 'Item not found' });
+    }
+
+    // Update quantity
+    const updatedCartItem = await prisma.cartItem.update({
+      where: { id },  // Gunakan ID sebagai string
+      data: { quantity: cartItem.quantity + 1 }
+    });
+
+    return res.status(200).json({ updatedCartItem, message: 'Quantity updated successfully' });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Failed to update quantity' });
+  }
+};
+
+// Decrement Cart Item Quantity
+exports.decrementCartItemQuantity = async (req, res) => {
+  const { id } = req.params;  // Konsisten menggunakan req.params untuk ID
+
+  try {
+    const cartItem = await prisma.cartItem.findUnique({
+      where: { id },
+    });
+
+    if (!cartItem) {
+      return res.status(404).json({ error: 'No such product' });
+    }
+
+    if (cartItem.quantity > 1) {
+      // Update quantity
+      const updatedCartItem = await prisma.cartItem.update({
+        where: { id },
+        data: { quantity: cartItem.quantity - 1 }
+      });
+      return res.status(200).json({ updatedCartItem, message: 'Quantity updated successfully' });
+    } else {
+      // Delete the cart item if quantity is 1 or less
+      await prisma.cartItem.delete({
+        where: { id }
+      });
+      return res.status(200).json({ message: 'Cart item has been deleted' });
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Failed to update quantity' });
+  }
+};
+
+exports.deleteOneCart = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const products = await prisma.cartItem.findUnique({
+      where: { id }
+    })
+
+    if (products) {
+      const deleteProduct = await prisma.cartItem.delete({
+        where: { id }
+      })
+      res.status(200).json({
+        deleteProduct, message: 'delete one product'
+      })
+    } else {
+      res.json({
+        status: '404',
+        message: 'product not found'
+      })
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      message: 'failed to delete product'
+    })
+  }
+}
+// end cart
+
+// checkout
 exports.getCheckout = async (req, res) => {
   const { userId, items } = req.body;
 
@@ -277,123 +398,4 @@ exports.getProductCheckout = async (req, res) => {
   }
 
 }
-
-
-// Increment Cart Item Quantity
-exports.incrementCartItemQuantity = async (req, res) => {
-  const { id } = req.params;  // ID sudah dalam bentuk string
-
-  try {
-    // Find the cart item using the string ID
-    const cartItem = await prisma.cartItem.findUnique({
-      where: { id }  // Gunakan ID sebagai string
-    });
-
-    if (!cartItem) {
-      return res.status(404).json({ error: 'Item not found' });
-    }
-
-    // Update quantity
-    const updatedCartItem = await prisma.cartItem.update({
-      where: { id },  // Gunakan ID sebagai string
-      data: { quantity: cartItem.quantity + 1 }
-    });
-
-    return res.status(200).json({ updatedCartItem, message: 'Quantity updated successfully' });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: 'Failed to update quantity' });
-  }
-};
-
-// Decrement Cart Item Quantity
-exports.decrementCartItemQuantity = async (req, res) => {
-  const { id } = req.params;  // Konsisten menggunakan req.params untuk ID
-
-  try {
-    const cartItem = await prisma.cartItem.findUnique({
-      where: { id },
-    });
-
-    if (!cartItem) {
-      return res.status(404).json({ error: 'No such product' });
-    }
-
-    if (cartItem.quantity > 1) {
-      // Update quantity
-      const updatedCartItem = await prisma.cartItem.update({
-        where: { id },
-        data: { quantity: cartItem.quantity - 1 }
-      });
-      return res.status(200).json({ updatedCartItem, message: 'Quantity updated successfully' });
-    } else {
-      // Delete the cart item if quantity is 1 or less
-      await prisma.cartItem.delete({
-        where: { id }
-      });
-      return res.status(200).json({ message: 'Cart item has been deleted' });
-    }
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: 'Failed to update quantity' });
-  }
-};
-
-exports.deleteOneCart = async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    const products = await prisma.cartItem.findUnique({
-      where: { id }
-    })
-
-    if (products) {
-      const deleteProduct = await prisma.cartItem.delete({
-        where: { id }
-      })
-      res.status(200).json({
-        deleteProduct, message: 'delete one product'
-      })
-    } else {
-      res.json({
-        status: '404',
-        message: 'product not found'
-      })
-    }
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({
-      message: 'failed to delete product'
-    })
-  }
-}
-
-exports.searchProduct = async (req, res) => {
-  const { query } = req.query;
-
-  try {
-    const products = await prisma.product.findMany({
-      where: {
-        namaBarang: {
-          contains: query,
-          mode: 'insensitive',
-        },
-      },
-    });
-
-    if (products.length === 0) {
-      return res.json({
-        status: 404,
-        message: 'No such nama barang',
-      });
-    }
-
-    res.status(200).json(products);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      status: 500,
-      message: 'Failed to fetch products',
-    });
-  }
-};
+//end checkout
