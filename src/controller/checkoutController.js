@@ -4,6 +4,12 @@ const prisma = new PrismaClient();
 exports.postAlamat = async (req, res) => {
     const { userId, alamat, kota, provinsi, kodePos } = req.body;
 
+    if (!userId || !alamat || !kota || !provinsi || !kodePos) {
+        return res.status(400).json({
+            message: 'All fields are required',
+        });
+    }
+
     try {
         const newAlamat = await prisma.alamatPengiriman.create({
             data: {
@@ -16,6 +22,7 @@ exports.postAlamat = async (req, res) => {
                 }
             },
         });
+
         res.status(200).json({ newAlamat, message: 'success creating alamat' })
     } catch (error) {
         console.error('error creating alamat', error);
