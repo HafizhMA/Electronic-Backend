@@ -11,15 +11,35 @@ datasource db {
 }
 
 model User {
-  id                   String     @id @default(uuid())
-  email                String     @unique
+  id                   String             @id @default(uuid())
+  email                String             @unique
   password             String
-  username             String?    @unique
+  username             String?            @unique
   no_telp              String?
   token_reset_password String?
   cartItems            CartItem[]
   products             Product[]
   Checkout             Checkout[]
+  AlamatPengiriman     AlamatPengiriman[]
+}
+
+model AlamatPengiriman {
+  id        String     @id @default(uuid())
+  userId    String
+  alamat    String
+  kota      String
+  provinsi  String
+  kodePos   String
+  isDefault Boolean    @default(false)
+  User      User       @relation(fields: [userId], references: [id])
+  Checkouts Checkout[]
+}
+
+model JasaKirim {
+  id          String     @id @default(uuid())
+  namaJasa    String
+  ongkosKirim Int
+  Checkouts   Checkout[]
 }
 
 model Product {
@@ -56,9 +76,13 @@ model CartItem {
 }
 
 model Checkout {
-  id        String     @id @default(uuid())
-  userId    String
-  user      User       @relation(fields: [userId], references: [id])
-  items     CartItem[]
-  createdAt DateTime   @default(now())
+  id                 String            @id @default(uuid())
+  userId             String
+  user               User              @relation(fields: [userId], references: [id])
+  items              CartItem[]
+  createdAt          DateTime          @default(now())
+  AlamatPengiriman   AlamatPengiriman? @relation(fields: [alamatPengirimanId], references: [id])
+  alamatPengirimanId String?
+  JasaKirim          JasaKirim?        @relation(fields: [jasaKirimId], references: [id])
+  jasaKirimId        String?
 }

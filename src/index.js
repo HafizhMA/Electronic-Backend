@@ -19,6 +19,9 @@ app.use(productRoutes);
 const userRoutes = require("./routes/userRoutes");
 app.use(userRoutes);
 
+const checkoutRoutes = require("./routes/checkoutRoutes");
+app.use(checkoutRoutes);
+
 app.get("/api", (req, res) => {
   res.send("hallo");
 });
