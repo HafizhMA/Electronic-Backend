@@ -31,3 +31,29 @@ exports.postAlamat = async (req, res) => {
         });
     }
 }
+
+exports.getAlamat = async (req, res) => {
+    try {
+        const Alamat = await prisma.alamatPengiriman.findMany({
+            include: {
+                User: true
+            }
+        });
+
+        if (Alamat.length === 0) {
+            return res.status(404).json({
+                message: 'No such alamat pengirim'
+            });
+        }
+
+        res.status(200).json({
+            Alamat,
+            message: 'Success getting alamat pengirim'
+        });
+    } catch (error) {
+        console.error('Error fetching alamat pengirim:', error);
+        res.status(500).json({
+            message: 'Error fetching alamat pengirim'
+        });
+    }
+};
