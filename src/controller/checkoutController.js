@@ -11,12 +11,21 @@ exports.postAlamat = async (req, res) => {
     }
 
     try {
+        const existingAlamat = await prisma.alamatPengiriman.findFirst({
+            where: {
+                userId: userId
+            }
+        });
+
+        const isDefault = !existingAlamat;
+
         const newAlamat = await prisma.alamatPengiriman.create({
             data: {
                 alamat,
                 kota,
                 provinsi,
                 kodePos,
+                isDefault,
                 User: {
                     connect: { id: userId }
                 }
