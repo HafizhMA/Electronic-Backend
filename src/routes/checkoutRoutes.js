@@ -4,6 +4,7 @@ const router = express.Router();
 
 router.post('/createAlamat', checkoutController.postAlamat);
 router.get('/getAlamat', checkoutController.getAlamat);
+router.patch('/choosenAlamat', checkoutController.setAlamat);
 
 module.exports = router;
 

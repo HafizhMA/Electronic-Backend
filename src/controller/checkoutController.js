@@ -28,9 +28,22 @@ exports.postAlamat = async (req, res) => {
                 isDefault,
                 User: {
                     connect: { id: userId }
-                }
+                },
             },
         });
+
+        if (newAlamat.isDefault === true) {
+            await prisma.checkout.updateMany({
+                where: {
+                    userId: userId,
+                    alamatPengirimanId: null,
+                },
+                data: {
+                    alamatPengirimanId: newAlamat.id
+                }
+            })
+        }
+
 
         res.status(200).json({ newAlamat, message: 'success creating alamat' })
     } catch (error) {
@@ -66,3 +79,38 @@ exports.getAlamat = async (req, res) => {
         });
     }
 };
+
+exports.setAlamat = async (req, res) => {
+    const { selectedAlamat } = req.body;
+
+    try {
+        await prisma.alamatPengiriman.updateMany({
+            where: {
+                userId: selectedAlamat.userId,
+                isDefault: true
+            },
+            data: {
+                isDefault: false
+            },
+        });
+
+        await prisma.alamatPengiriman.update({
+            where: {
+                id: selectedAlamat.id
+            },
+            data: {
+                isDefault: true,
+            },
+        });
+
+        return res.status(200).json({
+            message: 'Successfully updated the selected address.'
+        });
+    } catch (error) {
+        console.error('Error updating delivery address:', error);
+        res.status(500).json({
+            message: 'Error updating delivery address'
+        });
+    }
+}
+
