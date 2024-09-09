@@ -84,12 +84,12 @@ exports.getAlamat = async (req, res) => {
 };
 
 exports.setAlamat = async (req, res) => {
-    const { selectedAlamat } = req.body;
-
+    const { data } = req.body;
     try {
+        // Step 1: Update all addresses of the user to isDefault: false
         await prisma.alamatPengiriman.updateMany({
             where: {
-                userId: selectedAlamat.userId,
+                userId: data.userId,
                 isDefault: true
             },
             data: {
@@ -97,17 +97,28 @@ exports.setAlamat = async (req, res) => {
             },
         });
 
+        // Step 2: Set the selected address to isDefault: true
         await prisma.alamatPengiriman.update({
             where: {
-                id: selectedAlamat.id
+                id: data.id
             },
             data: {
                 isDefault: true,
             },
         });
 
+        // Step 3: Link the default address to the user's checkout process
+        await prisma.checkout.updateMany({
+            where: {
+                userId: data.userId,
+            },
+            data: {
+                alamatPengirimanId: data.id // Assuming `alamatPengirimanId` stores the address ID
+            }
+        });
+
         return res.status(200).json({
-            message: 'Successfully updated the selected address.'
+            message: 'Successfully updated the selected address and linked it to the checkout.'
         });
     } catch (error) {
         console.error('Error updating delivery address:', error);
@@ -116,4 +127,5 @@ exports.setAlamat = async (req, res) => {
         });
     }
 }
+
 
