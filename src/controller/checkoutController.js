@@ -59,6 +59,9 @@ exports.getAlamat = async (req, res) => {
         const Alamat = await prisma.alamatPengiriman.findMany({
             include: {
                 User: true
+            },
+            orderBy: {
+                isDefault: 'desc'
             }
         });
 
