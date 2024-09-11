@@ -128,4 +128,32 @@ exports.setAlamat = async (req, res) => {
     }
 }
 
+exports.updateAlamat = async (req, res) => {
+    const { updateData } = req.body;
+
+    try {
+        const updatedData = await prisma.alamatPengiriman.update({
+            where: {
+                id: updateData.id
+            },
+            data: {
+                provinsi: updateData.provinsi,
+                kota: updateData.kota,
+                kodePos: updateData.kodePos,
+                alamat: updateData.alamat,
+            }
+        })
+
+        res.status(200).json({
+            updatedData,
+            message: 'success update alamat'
+        })
+    } catch (error) {
+        console.error('failed update alamat', error);
+        res.status(500).json({
+            message: 'failed update alamat'
+        })
+    }
+}
+
 
