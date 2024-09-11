@@ -298,6 +298,31 @@ exports.deleteOneCart = async (req, res) => {
     })
   }
 }
+
+exports.changeQuantityCart = async (req, res) => {
+  const { id, newQuantity } = req.body;
+
+  try {
+    const updateQuantity = await prisma.cartItem.update({
+      where: {
+        id
+      },
+      data: {
+        quantity: newQuantity
+      }
+    })
+
+    res.status(200).json({
+      updateQuantity,
+      message: 'success update cart quantity'
+    })
+  } catch (error) {
+    console.error('failed change cart quantity', error);
+    res.status(500).json({
+      message: 'failed change cart quantity'
+    })
+  }
+}
 // end cart
 
 // checkout
