@@ -156,4 +156,26 @@ exports.updateAlamat = async (req, res) => {
     }
 }
 
+exports.deleteAlamat = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const deletedAlamat = await prisma.alamatPengiriman.delete({
+            where: {
+                id: id
+            }
+        })
+
+        res.status(200).json({
+            deletedAlamat,
+            message: 'success delete alamat'
+        })
+    } catch (error) {
+        console.error('failed delete alamat', error);
+        res.status(500).json({
+            message: 'failed delete alamat'
+        })
+    }
+}
+
 
