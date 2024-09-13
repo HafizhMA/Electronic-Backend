@@ -5,7 +5,7 @@
 **Step 1:** Fork and clone this repository.
 
 ```bash
-git clone https://github.com/HafizhMA/shopping-cart-Backend.git
+git clone https://github.com/HafizhMA/Electronic-Backend.git
 ```
 
 **Step 2:** Install dependencies.
