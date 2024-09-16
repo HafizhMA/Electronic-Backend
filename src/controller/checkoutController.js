@@ -11,14 +11,18 @@ exports.postAlamat = async (req, res) => {
     }
 
     try {
-        const existingAlamat = await prisma.alamatPengiriman.findFirst({
+        // Check if the user already has a default address
+        const existingDefaultAlamat = await prisma.alamatPengiriman.findFirst({
             where: {
-                userId: userId
+                userId: userId,
+                isDefault: true
             }
         });
 
-        const isDefault = !existingAlamat;
+        // Set isDefault to true if there are no default addresses, otherwise false
+        const isDefault = !existingDefaultAlamat;
 
+        // Create the new address
         const newAlamat = await prisma.alamatPengiriman.create({
             data: {
                 alamat,
@@ -32,7 +36,8 @@ exports.postAlamat = async (req, res) => {
             },
         });
 
-        if (newAlamat.isDefault === true) {
+        // If the new address is default, update existing checkouts
+        if (isDefault) {
             await prisma.checkout.updateMany({
                 where: {
                     userId: userId,
@@ -41,11 +46,10 @@ exports.postAlamat = async (req, res) => {
                 data: {
                     alamatPengirimanId: newAlamat.id
                 }
-            })
+            });
         }
 
-
-        res.status(200).json({ newAlamat, message: 'success creating alamat' })
+        res.status(200).json({ newAlamat, message: 'success creating alamat' });
     } catch (error) {
         console.error('error creating alamat', error);
         res.status(500).json({
@@ -53,6 +57,7 @@ exports.postAlamat = async (req, res) => {
         });
     }
 }
+
 
 exports.getAlamat = async (req, res) => {
     try {
@@ -86,7 +91,6 @@ exports.getAlamat = async (req, res) => {
 exports.setAlamat = async (req, res) => {
     const { data } = req.body;
     try {
-        // Step 1: Update all addresses of the user to isDefault: false
         await prisma.alamatPengiriman.updateMany({
             where: {
                 userId: data.userId,
@@ -97,7 +101,6 @@ exports.setAlamat = async (req, res) => {
             },
         });
 
-        // Step 2: Set the selected address to isDefault: true
         await prisma.alamatPengiriman.update({
             where: {
                 id: data.id
@@ -107,13 +110,12 @@ exports.setAlamat = async (req, res) => {
             },
         });
 
-        // Step 3: Link the default address to the user's checkout process
         await prisma.checkout.updateMany({
             where: {
                 userId: data.userId,
             },
             data: {
-                alamatPengirimanId: data.id // Assuming `alamatPengirimanId` stores the address ID
+                alamatPengirimanId: data.id
             }
         });
 
@@ -127,6 +129,7 @@ exports.setAlamat = async (req, res) => {
         });
     }
 }
+
 
 exports.updateAlamat = async (req, res) => {
     const { updateData } = req.body;
@@ -158,24 +161,44 @@ exports.updateAlamat = async (req, res) => {
 
 exports.deleteAlamat = async (req, res) => {
     const { id } = req.params;
+    const { userId } = req.body;
 
     try {
+        // Hapus alamat yang diinginkan
         const deletedAlamat = await prisma.alamatPengiriman.delete({
             where: {
                 id: id
             }
-        })
+        });
+
+        // Ambil semua alamat yang tersisa untuk user yang sama
+        const allAlamat = await prisma.alamatPengiriman.findMany({
+            where: {
+                userId: userId
+            }
+        });
+
+        // Jika hanya ada satu alamat tersisa, set alamat tersebut sebagai isDefault: true
+        if (allAlamat.length === 1) {
+            const remainingAlamat = allAlamat[0];
+            await prisma.alamatPengiriman.update({
+                where: { id: remainingAlamat.id },
+                data: { isDefault: true }
+            });
+        }
 
         res.status(200).json({
             deletedAlamat,
-            message: 'success delete alamat'
-        })
+            message: 'Success delete alamat'
+        });
     } catch (error) {
-        console.error('failed delete alamat', error);
+        console.error('Failed delete alamat', error);
         res.status(500).json({
-            message: 'failed delete alamat'
-        })
+            message: 'Failed delete alamat'
+        });
     }
-}
+};
+
+
 
 
