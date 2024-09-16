@@ -7,6 +7,7 @@ router.get('/getAlamat', checkoutController.getAlamat);
 router.patch('/choosenAlamat', checkoutController.setAlamat);
 router.put('/updateAlamat', checkoutController.updateAlamat);
 router.delete('/deleteAlamat/:id', checkoutController.deleteAlamat);
+router.get('/getOngkir', checkoutController.getOngkir)
 
 module.exports = router;
 

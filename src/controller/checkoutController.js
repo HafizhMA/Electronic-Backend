@@ -1,5 +1,10 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
+const axios = require('axios');
+require('dotenv').config();
+
+const rajaOngkirUrl = 'https://api.rajaongkir.com/starter'; // or 'pro' if you're using Pro
+const rajaOngkirKey = process.env.RAJAONGKIR_API_KEY;
 
 exports.postAlamat = async (req, res) => {
     const { userId, alamat, kota, provinsi, kodePos } = req.body;
@@ -199,6 +204,36 @@ exports.deleteAlamat = async (req, res) => {
     }
 };
 
+const getCityRajaOngkir = async () => {
+    try {
+        const response = await axios.get(`${rajaOngkirUrl}/city`,
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'key': rajaOngkirKey,
+                }
+            })
+        return response.data;
+    } catch (error) {
+        console.error('failed fetch api', error)
+        throw new Error('Error fetching cities from Raja Ongkir API');
+    }
+}
+
+exports.getOngkir = async (req, res) => {
+    try {
+        const getCity = await getCityRajaOngkir();
+        res.status(200).json({
+            getCity,
+            message: 'success get city'
+        })
+    } catch (error) {
+        console.error('failed get ongkir', error);
+        res.status(500).json({
+            message: 'failed get ongkir'
+        })
+    }
+}
 
 
 
