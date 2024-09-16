@@ -334,6 +334,7 @@ exports.getCheckout = async (req, res) => {
   }
 
   try {
+    // Check for existing checkout and delete if found
     const existingCheckout = await prisma.cartItem.findFirst({
       where: {
         id: { in: items.map(item => item.cartItemId) },
@@ -361,22 +362,29 @@ exports.getCheckout = async (req, res) => {
       });
     }
 
+    // Find the default address for the user
     const alamat = await prisma.alamatPengiriman.findFirst({
       where: {
+        userId: userId,          // Ensure the address belongs to the user
         isDefault: true
       }
-    })
-
+    });
 
     // Create a new checkout
-    const checkout = await prisma.checkout.create({
-      data: {
-        userId,
-        items: {
-          connect: items.map(item => ({ id: item.cartItemId }))
-        },
-        ...(alamat && { alamatPengirimanId: alamat.id }) // jika alamat sudah ada maka connect 
+    const checkoutData = {
+      userId,
+      items: {
+        connect: items.map(item => ({ id: item.cartItemId }))
       }
+    };
+
+    // Include the address only if it exists
+    if (alamat) {
+      checkoutData.alamatPengirimanId = alamat.id;
+    }
+
+    const checkout = await prisma.checkout.create({
+      data: checkoutData
     });
 
     // Update the cart items with the new checkoutId
@@ -398,6 +406,7 @@ exports.getCheckout = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
 
 exports.getProductCheckout = async (req, res) => {
   const { userId } = req.body;
