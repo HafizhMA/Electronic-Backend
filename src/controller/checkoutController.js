@@ -220,7 +220,22 @@ const getCityRajaOngkir = async () => {
     }
 }
 
-exports.getOngkir = async (req, res) => {
+const getProvinceRajaOngkir = async () => {
+    try {
+        const response = await axios.get(`${rajaOngkirUrl}/province`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'key': rajaOngkirKey,
+            }
+        })
+        return response.data;
+    } catch (error) {
+        console.error('failed fetch api', error)
+        throw new Error('Error fetching province from Raja Ongkir API');
+    }
+}
+
+exports.getCityOngkir = async (req, res) => {
     try {
         const getCity = await getCityRajaOngkir();
         res.status(200).json({
@@ -228,9 +243,24 @@ exports.getOngkir = async (req, res) => {
             message: 'success get city'
         })
     } catch (error) {
-        console.error('failed get ongkir', error);
+        console.error('failed get city', error);
         res.status(500).json({
-            message: 'failed get ongkir'
+            message: 'failed get city'
+        })
+    }
+}
+
+exports.getProvinceOngkir = async (req, res) => {
+    try {
+        const getProvince = await getProvinceRajaOngkir();
+        res.status(200).json({
+            getProvince,
+            message: 'success get province'
+        })
+    } catch (error) {
+        console.error('failed get province', error);
+        res.status(500).json({
+            message: 'failed get province'
         })
     }
 }

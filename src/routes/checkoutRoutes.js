@@ -7,7 +7,8 @@ router.get('/getAlamat', checkoutController.getAlamat);
 router.patch('/choosenAlamat', checkoutController.setAlamat);
 router.put('/updateAlamat', checkoutController.updateAlamat);
 router.delete('/deleteAlamat/:id', checkoutController.deleteAlamat);
-router.get('/getOngkir', checkoutController.getOngkir)
+router.get('/getCity', checkoutController.getCityOngkir);
+router.get('/getProvince', checkoutController.getProvinceOngkir);
 
 module.exports = router;
 
