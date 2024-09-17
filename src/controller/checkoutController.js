@@ -188,7 +188,19 @@ exports.deleteAlamat = async (req, res) => {
             const remainingAlamat = allAlamat[0];
             await prisma.alamatPengiriman.update({
                 where: { id: remainingAlamat.id },
-                data: { isDefault: true }
+                data: {
+                    isDefault: true
+                }
+            });
+
+            // connect ke alamat yang tersisa
+            await prisma.checkout.updateMany({
+                where: {
+                    userId: userId,
+                },
+                data: {
+                    alamatPengirimanId: remainingAlamat.id
+                }
             });
         }
 
@@ -203,6 +215,7 @@ exports.deleteAlamat = async (req, res) => {
         });
     }
 };
+
 
 const getCityRajaOngkir = async () => {
     try {
@@ -264,6 +277,40 @@ exports.getProvinceOngkir = async (req, res) => {
         })
     }
 }
+
+const getProvinceRajaOngkirSatuan = async (id) => {
+    try {
+        const response = await axios.get(`${rajaOngkirUrl}/province`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'key': rajaOngkirKey,
+            },
+            params: { id }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Failed to fetch province from Raja Ongkir API', error);
+        throw new Error('Error fetching province from Raja Ongkir API');
+    }
+};
+
+exports.getProvinceOngkirSatuan = async (req, res) => {
+    const { id } = req.query;
+    try {
+        const provinceData = await getProvinceRajaOngkirSatuan(id);
+        res.status(200).json({
+            province: provinceData,
+            message: 'Success fetching province',
+        });
+    } catch (error) {
+        console.error('Failed to get province', error);
+        res.status(500).json({
+            message: 'Failed to get province',
+        });
+    }
+};
+
+
 
 
 
