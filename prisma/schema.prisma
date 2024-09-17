@@ -78,7 +78,7 @@ model CartItem {
 model Checkout {
   id                 String            @id @default(uuid())
   userId             String
-  user               User              @relation(fields: [userId], references: [id])
+  user               User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   items              CartItem[]
   createdAt          DateTime          @default(now())
   AlamatPengiriman   AlamatPengiriman? @relation(fields: [alamatPengirimanId], references: [id])
