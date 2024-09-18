@@ -3,7 +3,7 @@ const prisma = new PrismaClient();
 const axios = require('axios');
 require('dotenv').config();
 
-const rajaOngkirUrl = 'https://api.rajaongkir.com/starter'; // or 'pro' if you're using Pro
+const rajaOngkirUrl = 'https://api.rajaongkir.com/starter';
 const rajaOngkirKey = process.env.RAJAONGKIR_API_KEY;
 
 exports.postAlamat = async (req, res) => {
@@ -309,6 +309,24 @@ exports.getProvinceOngkirSatuan = async (req, res) => {
         });
     }
 };
+
+exports.findCityId = async (req, res) => {
+    const { userId } = req.body
+    try {
+        const cityDatas = await getCityRajaOngkir();
+        const alamatUser = await prisma.alamatPengiriman.findMany({
+            where: {
+                userId: userId,
+                isDefault: true
+            }
+        })
+    } catch (error) {
+        console.error('failed to find city id', error);
+        res.status(500).json({
+            message: 'failed to find city id'
+        })
+    }
+}
 
 
 

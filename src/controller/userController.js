@@ -73,7 +73,7 @@ exports.login = async (req, res) => {
     const matchPassword = await bcrypt.compare(password, checkUser.password);
     if (matchPassword) {
       const token = jwt.sign({ userId: checkUser.id }, secret, {
-        expiresIn: "1h",
+        expiresIn: "1d",
       });
       return res.json({ message: "Login berhasil", checkUser, token });
     } else {
