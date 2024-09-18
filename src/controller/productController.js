@@ -334,27 +334,23 @@ exports.getCheckout = async (req, res) => {
   }
 
   try {
-    // Check for existing checkout and delete if found
-    const existingCheckout = await prisma.cartItem.findFirst({
+    // Cek jika sudah ada checkout untuk userId ini, jika ada hapus
+    const existingCheckout = await prisma.checkout.findFirst({
       where: {
-        id: { in: items.map(item => item.cartItemId) },
-        checkoutId: {
-          not: null,
-        }
+        userId: userId,
       },
-      include: {
-        checkout: true
-      }
     });
 
     if (existingCheckout) {
+      // Hapus checkout yang lama
       await prisma.checkout.delete({
-        where: { id: existingCheckout.checkoutId },
+        where: { id: existingCheckout.id },
       });
 
+      // Update cart item untuk me-reset checkoutId ke null
       await prisma.cartItem.updateMany({
         where: {
-          checkoutId: existingCheckout.checkoutId,
+          checkoutId: existingCheckout.id,
         },
         data: {
           checkoutId: null,
@@ -362,32 +358,33 @@ exports.getCheckout = async (req, res) => {
       });
     }
 
-    // Find the default address for the user
+    // Temukan alamat default untuk user ini
     const alamat = await prisma.alamatPengiriman.findFirst({
       where: {
-        userId: userId,          // Ensure the address belongs to the user
+        userId: userId,          // Pastikan alamat ini milik user yang sesuai
         isDefault: true
       }
     });
 
-    // Create a new checkout
+    // Siapkan data checkout baru
     const checkoutData = {
       userId,
       items: {
-        connect: items.map(item => ({ id: item.cartItemId }))
-      }
+        connect: items.map(item => ({ id: item.cartItemId })),
+      },
     };
 
-    // Include the address only if it exists
+    // Sertakan alamat hanya jika ditemukan
     if (alamat) {
       checkoutData.alamatPengirimanId = alamat.id;
     }
 
+    // Buat checkout baru
     const checkout = await prisma.checkout.create({
-      data: checkoutData
+      data: checkoutData,
     });
 
-    // Update the cart items with the new checkoutId
+    // Update cart items dengan checkoutId yang baru
     await prisma.cartItem.updateMany({
       where: {
         id: { in: items.map(item => item.cartItemId) },
@@ -399,7 +396,7 @@ exports.getCheckout = async (req, res) => {
 
     res.status(200).json({
       checkout,
-      message: 'Checkout success'
+      message: 'Checkout success',
     });
   } catch (error) {
     console.error('Error during checkout', error);
