@@ -6,16 +6,60 @@ require('dotenv').config();
 const rajaOngkirUrl = 'https://api.rajaongkir.com/starter';
 const rajaOngkirKey = process.env.RAJAONGKIR_API_KEY;
 
-exports.postAlamat = async (req, res) => {
-    const { userId, alamat, kota, provinsi, kodePos } = req.body;
+const getCityRajaOngkir = async () => {
+    try {
+        const response = await axios.get(`${rajaOngkirUrl}/city`,
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'key': rajaOngkirKey,
+                }
+            })
+        return response.data;
+    } catch (error) {
+        console.error('failed fetch api', error)
+        throw new Error('Error fetching cities from Raja Ongkir API');
+    }
+}
 
-    if (!userId || !alamat || !kota || !provinsi || !kodePos) {
+const getProvinceRajaOngkir = async () => {
+    try {
+        const response = await axios.get(`${rajaOngkirUrl}/province`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'key': rajaOngkirKey,
+            }
+        })
+        return response.data;
+    } catch (error) {
+        console.error('failed fetch api', error)
+        throw new Error('Error fetching province from Raja Ongkir API');
+    }
+}
+
+exports.postAlamat = async (req, res) => {
+    const { userId, alamat, kotaId, provinsiId, kodePos } = req.body;
+
+    if (!userId || !alamat || !kotaId || !provinsiId || !kodePos) {
         return res.status(400).json({
             message: 'All fields are required',
         });
     }
 
     try {
+        // Ambil data kota dan provinsi dari API Raja Ongkir
+        const citiesResponse = await getCityRajaOngkir();
+        const provincesResponse = await getProvinceRajaOngkir();
+
+        const city = citiesResponse.rajaongkir.results.find(c => c.city_id === kotaId);
+        const province = provincesResponse.rajaongkir.results.find(p => p.province_id === provinsiId);
+
+        if (!city || !province) {
+            return res.status(404).json({
+                message: 'City or Province not found',
+            });
+        }
+
         // Check if the user already has a default address
         const existingDefaultAlamat = await prisma.alamatPengiriman.findFirst({
             where: {
@@ -24,15 +68,16 @@ exports.postAlamat = async (req, res) => {
             }
         });
 
-        // Set isDefault to true if there are no default addresses, otherwise false
         const isDefault = !existingDefaultAlamat;
 
         // Create the new address
         const newAlamat = await prisma.alamatPengiriman.create({
             data: {
                 alamat,
-                kota,
-                provinsi,
+                kotaId: kotaId,
+                kota: city.city_name,
+                provinsiId: provinsiId,
+                provinsi: province.province,
                 kodePos,
                 isDefault,
                 User: {
@@ -41,7 +86,6 @@ exports.postAlamat = async (req, res) => {
             },
         });
 
-        // If the new address is default, update existing checkouts
         if (isDefault) {
             await prisma.checkout.updateMany({
                 where: {
@@ -62,7 +106,6 @@ exports.postAlamat = async (req, res) => {
         });
     }
 }
-
 
 exports.getAlamat = async (req, res) => {
     try {
@@ -140,13 +183,27 @@ exports.updateAlamat = async (req, res) => {
     const { updateData } = req.body;
 
     try {
+        const citiesResponse = await getCityRajaOngkir();
+        const provincesResponse = await getProvinceRajaOngkir();
+
+        const city = citiesResponse.rajaongkir.results.find(c => c.city_id === updateData.kotaId);
+        const province = provincesResponse.rajaongkir.results.find(p => p.province_id === updateData.provinsiId);
+
+        if (!city || !province) {
+            return res.status(404).json({
+                message: 'City or Province not found',
+            });
+        }
+
         const updatedData = await prisma.alamatPengiriman.update({
             where: {
                 id: updateData.id
             },
             data: {
-                provinsi: updateData.provinsi,
-                kota: updateData.kota,
+                provinsiId: updateData.provinsiId,
+                provinsi: province.province,
+                kotaId: updateData.kotaId,
+                kota: city.city_name,
                 kodePos: updateData.kodePos,
                 alamat: updateData.alamat,
             }
@@ -216,38 +273,6 @@ exports.deleteAlamat = async (req, res) => {
     }
 };
 
-
-const getCityRajaOngkir = async () => {
-    try {
-        const response = await axios.get(`${rajaOngkirUrl}/city`,
-            {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'key': rajaOngkirKey,
-                }
-            })
-        return response.data;
-    } catch (error) {
-        console.error('failed fetch api', error)
-        throw new Error('Error fetching cities from Raja Ongkir API');
-    }
-}
-
-const getProvinceRajaOngkir = async () => {
-    try {
-        const response = await axios.get(`${rajaOngkirUrl}/province`, {
-            headers: {
-                'Content-Type': 'application/json',
-                'key': rajaOngkirKey,
-            }
-        })
-        return response.data;
-    } catch (error) {
-        console.error('failed fetch api', error)
-        throw new Error('Error fetching province from Raja Ongkir API');
-    }
-}
-
 exports.getCityOngkir = async (req, res) => {
     try {
         const getCity = await getCityRajaOngkir();
@@ -314,7 +339,7 @@ exports.findCityId = async (req, res) => {
     const { userId } = req.body
     try {
         const cityDatas = await getCityRajaOngkir();
-        const alamatUser = await prisma.alamatPengiriman.findMany({
+        const alamatUser = await prisma.alamatPengiriman.findFirst({
             where: {
                 userId: userId,
                 isDefault: true
