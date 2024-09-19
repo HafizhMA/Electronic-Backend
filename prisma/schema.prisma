@@ -24,15 +24,17 @@ model User {
 }
 
 model AlamatPengiriman {
-  id        String     @id @default(uuid())
-  userId    String
-  alamat    String
-  kota      String
-  provinsi  String
-  kodePos   String
-  isDefault Boolean    @default(false)
-  User      User       @relation(fields: [userId], references: [id])
-  Checkouts Checkout[]
+  id         String     @id @default(uuid())
+  userId     String
+  alamat     String
+  kotaId     String
+  kota       String?
+  provinsiId String
+  provinsi   String?
+  kodePos    String
+  isDefault  Boolean    @default(false)
+  User       User       @relation(fields: [userId], references: [id])
+  Checkouts  Checkout[]
 }
 
 model JasaKirim {
@@ -60,19 +62,19 @@ model Product {
   diskon           Int
   cartItems        CartItem[]
   userId           String
-  user             User       @relation(fields: [userId], references: [id])
+  user             User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model CartItem {
   id         String    @id @default(uuid())
   userId     String
-  user       User      @relation(fields: [userId], references: [id])
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   productId  String
-  product    Product   @relation(fields: [productId], references: [id])
+  product    Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
   quantity   Int       @default(1)
   createdAt  DateTime  @default(now())
   checkoutId String?
-  checkout   Checkout? @relation(fields: [checkoutId], references: [id])
+  checkout   Checkout? @relation(fields: [checkoutId], references: [id], onDelete: SetNull)
 }
 
 model Checkout {
@@ -81,8 +83,8 @@ model Checkout {
   user               User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   items              CartItem[]
   createdAt          DateTime          @default(now())
-  AlamatPengiriman   AlamatPengiriman? @relation(fields: [alamatPengirimanId], references: [id])
+  AlamatPengiriman   AlamatPengiriman? @relation(fields: [alamatPengirimanId], references: [id], onDelete: SetNull)
   alamatPengirimanId String?
-  JasaKirim          JasaKirim?        @relation(fields: [jasaKirimId], references: [id])
+  JasaKirim          JasaKirim?        @relation(fields: [jasaKirimId], references: [id], onDelete: SetNull)
   jasaKirimId        String?
 }
