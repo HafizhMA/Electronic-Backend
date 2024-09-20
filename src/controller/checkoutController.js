@@ -335,20 +335,53 @@ exports.getProvinceOngkirSatuan = async (req, res) => {
     }
 };
 
-exports.findCityId = async (req, res) => {
-    const { userId } = req.body
+exports.getOngkir = async (req, res) => {
+    const { userId } = req.body;
+
     try {
-        const cityDatas = await getCityRajaOngkir();
-        const alamatUser = await prisma.alamatPengiriman.findFirst({
+        const checkout = await prisma.checkout.findFirst({
+            where: {
+                userId: userId
+            },
+            include: {
+                items: {
+                    include: {
+                        product: true
+                    }
+                }
+            }
+        })
+
+        const itemsCheckout = checkout.items;
+
+        const idPenjual = [];
+        itemsCheckout.forEach(item => {
+            idPenjual.push(item.product.userId)
+        });
+
+        const sellerAddress = await prisma.alamatPengiriman.findFirst({
+            where: {
+                userId: idPenjual
+            }
+        })
+
+        const buyerAddress = await prisma.alamatPengiriman.findFirst({
             where: {
                 userId: userId,
                 isDefault: true
             }
         })
+
+        const ongkir = await axios.post(`${rajaOngkirUrl}/cost`,
+            {
+                origin: choosenAlamat.kotaId,
+                destination: choosenAlamat.kotaId,
+            }
+        )
     } catch (error) {
-        console.error('failed to find city id', error);
+        console.error('failed fetch ongkir', error);
         res.status(500).json({
-            message: 'failed to find city id'
+            message: 'failed fetch ongkir'
         })
     }
 }
