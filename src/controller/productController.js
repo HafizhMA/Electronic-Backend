@@ -416,7 +416,19 @@ exports.getProductCheckout = async (req, res) => {
       include: {
         items: {
           include: {
-            product: true
+            product: {
+              include: {
+                user: {
+                  include: {
+                    AlamatPengiriman: {
+                      where: {
+                        isDefault: true
+                      }
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
