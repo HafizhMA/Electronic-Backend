@@ -336,55 +336,56 @@ exports.getProvinceOngkirSatuan = async (req, res) => {
 };
 
 exports.getOngkir = async (req, res) => {
-    const { userId } = req.body;
+    const { data } = req.body;
 
     try {
-        const checkout = await prisma.checkout.findFirst({
-            where: {
-                userId: userId
-            },
-            include: {
-                items: {
-                    include: {
-                        product: true
-                    }
-                }
-            }
-        })
-
-        const itemsCheckout = checkout.items;
-
-        const idPenjual = [];
-        itemsCheckout.forEach(item => {
-            idPenjual.push(item.product.userId)
+        const sellerAddress = await prisma.alamatPengiriman.findFirst({
+            where: { id: data.alamatPenjual.id },
         });
 
-        const sellerAddress = await prisma.alamatPengiriman.findFirst({
-            where: {
-                userId: idPenjual
-            }
-        })
-
         const buyerAddress = await prisma.alamatPengiriman.findFirst({
-            where: {
-                userId: userId,
-                isDefault: true
-            }
-        })
+            where: { userId: data.userId },
+        });
 
-        const ongkir = await axios.post(`${rajaOngkirUrl}/cost`,
-            {
-                origin: choosenAlamat.kotaId,
-                destination: choosenAlamat.kotaId,
-            }
-        )
+        if (!sellerAddress || !buyerAddress) {
+            return res.status(400).json({
+                message: 'Invalid address information',
+            });
+        }
+
+        const service = data.service;
+        const weightProduct = data.checkoutProduct.berat;
+
+        const ongkirParams = {
+            origin: sellerAddress.kotaId,
+            destination: buyerAddress.kotaId,
+            weight: weightProduct,
+            courier: service,
+        };
+
+        console.log('ongkir params', ongkirParams);
+
+        const ongkir = await axios.post(`${rajaOngkirUrl}/cost`, ongkirParams, {
+            headers: {
+                'Content-Type': 'application/json',
+                key: rajaOngkirKey,
+            },
+        });
+
+        console.log('ongkir ', ongkir.data);
+
+        res.status(200).json({
+            ongkir: ongkir.data,
+            message: 'success get ongkir',
+        });
     } catch (error) {
         console.error('failed fetch ongkir', error);
         res.status(500).json({
-            message: 'failed fetch ongkir'
-        })
+            message: 'failed fetch ongkir',
+        });
     }
-}
+};
+
 
 
 

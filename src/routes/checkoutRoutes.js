@@ -10,7 +10,7 @@ router.delete('/deleteAlamat/:id', checkoutController.deleteAlamat);
 router.get('/getCity', checkoutController.getCityOngkir);
 router.get('/getProvince', checkoutController.getProvinceOngkir);
 router.get('/getProvinceSatuan', checkoutController.getProvinceOngkirSatuan);
-router.get('/getOngkir', checkoutController.getOngkir);
+router.post('/getOngkir', checkoutController.getOngkir);
 
 module.exports = router;
 
