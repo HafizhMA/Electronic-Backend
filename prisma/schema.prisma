@@ -53,7 +53,7 @@ model Product {
   quantity         Int
   size             String
   color            String
-  berat            String
+  berat            Int
   features         String
   capacity         String
   powerConsumption String
