@@ -11,6 +11,7 @@ router.get('/getCity', checkoutController.getCityOngkir);
 router.get('/getProvince', checkoutController.getProvinceOngkir);
 router.get('/getProvinceSatuan', checkoutController.getProvinceOngkirSatuan);
 router.post('/getOngkir', checkoutController.getOngkir);
+router.post('/connectJasaCart', checkoutController.connectJasaCart);
 
 module.exports = router;
 

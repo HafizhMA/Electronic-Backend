@@ -338,6 +338,8 @@ exports.getProvinceOngkirSatuan = async (req, res) => {
 exports.getOngkir = async (req, res) => {
     const { data } = req.body;
 
+    console.log('checkoutproduct', data.checkoutProduct)
+
     try {
         const sellerAddress = await prisma.alamatPengiriman.findFirst({
             where: { id: data.alamatPenjual.id },
@@ -363,8 +365,6 @@ exports.getOngkir = async (req, res) => {
             courier: service,
         };
 
-        console.log('ongkir params', ongkirParams);
-
         const ongkir = await axios.post(`${rajaOngkirUrl}/cost`, ongkirParams, {
             headers: {
                 'Content-Type': 'application/json',
@@ -372,10 +372,9 @@ exports.getOngkir = async (req, res) => {
             },
         });
 
-        console.log('ongkir ', ongkir.data);
-
         res.status(200).json({
             ongkir: ongkir.data,
+            product: data.checkoutProduct,
             message: 'success get ongkir',
         });
     } catch (error) {
@@ -386,6 +385,53 @@ exports.getOngkir = async (req, res) => {
     }
 };
 
+exports.connectJasaCart = async (req, res) => {
+    const { data } = req.body;
+
+    try {
+        const jasaKirim = await prisma.jasaKirim.create({
+            data: {
+                namaJasa: data.services.description,
+                ongkosKirim: data.services.cost[0].value
+            }
+        })
+
+        const cartItems = await prisma.cartItem.findFirst({
+            where: {
+                productId: data.products.id
+            },
+        })
+
+        if (!cartItems) {
+            res.status(404).json({
+                message: 'cannot find cartItems'
+            })
+        }
+
+        const updateCartItems = await prisma.cartItem.update({
+            where: {
+                id: cartItems.id
+            },
+            data: {
+                jasaKirimId: jasaKirim.id,
+            },
+            include: {
+                product: true,
+                jasaKirim: true
+            }
+        })
+
+        res.status(200).json({
+            updateCartItems,
+            message: 'success connect jasakirim to cartitems'
+        })
+    } catch (error) {
+        console.error('failed connect jasakirim to cartitems', error);
+        res.status(500).json({
+            message: 'failed connect jasakirim to cartitems'
+        })
+    }
+}
 
 
 
