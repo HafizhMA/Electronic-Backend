@@ -5,6 +5,7 @@ require('dotenv').config();
 
 const rajaOngkirUrl = 'https://api.rajaongkir.com/starter';
 const rajaOngkirKey = process.env.RAJAONGKIR_API_KEY;
+const serverKeyMidtrans = process.env.SERVER_KEY_MIDTRANS
 
 const getCityRajaOngkir = async () => {
     try {
@@ -431,6 +432,35 @@ exports.connectJasaCart = async (req, res) => {
             message: 'failed connect jasakirim to cartitems'
         })
     }
+}
+
+exports.midtransPayment = async (req, res) => {
+    const transactionData = {
+        transaction_details: {
+            order_id: 'order-id-1',
+            gross_amount: 10000,
+        },
+    }
+
+    try {
+        const response = await axios.post('https://app.sandbox.midtrans.com/snap/v1/transactions', transactionData, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Basic ${serverKeyMidtrans}`
+            }
+        })
+
+        res.status(201).json({
+            response: response.data,
+            message: 'success get payment midtrans'
+        })
+    } catch (error) {
+        console.error('Error creating transaction:', error);
+        res.status(501).json({
+            message: 'Error creating transaction'
+        })
+    }
+
 }
 
 
