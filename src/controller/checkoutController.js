@@ -339,8 +339,6 @@ exports.getProvinceOngkirSatuan = async (req, res) => {
 exports.getOngkir = async (req, res) => {
     const { data } = req.body;
 
-    console.log('checkoutproduct', data.checkoutProduct)
-
     try {
         const sellerAddress = await prisma.alamatPengiriman.findFirst({
             where: { id: data.alamatPenjual.id },
@@ -390,55 +388,106 @@ exports.connectJasaCart = async (req, res) => {
     const { data } = req.body;
 
     try {
-        const jasaKirim = await prisma.jasaKirim.create({
-            data: {
-                namaJasa: data.services.description,
-                ongkosKirim: data.services.cost[0].value
-            }
-        })
-
-        const cartItems = await prisma.cartItem.findFirst({
+        const existingService = await prisma.jasaKirim.findFirst({
             where: {
-                productId: data.products.id
+                cartItems: {
+                    some: {
+                        id: data.newServiceCost.id,
+                    },
+                },
             },
-        })
+        });
 
-        if (!cartItems) {
-            res.status(404).json({
-                message: 'cannot find cartItems'
-            })
+        if (existingService) {
+            const updatedService = await prisma.jasaKirim.update({
+                where: {
+                    id: existingService.id,
+                },
+                data: {
+                    namaJasa: data.newServiceCost.services,
+                    ongkosKirim: data.newServiceCost.biaya,
+                },
+            });
+
+            return res.status(200).json({
+                updatedService,
+                message: 'Success updated jasa kirim',
+            });
+        } else {
+            // Jika JasaKirim belum ada, buat yang baru
+            const createService = await prisma.jasaKirim.create({
+                data: {
+                    namaJasa: data.newServiceCost.services,
+                    ongkosKirim: data.newServiceCost.biaya,
+                    cartItems: {
+                        connect: { id: data.newServiceCost.id },
+                    },
+                },
+            });
+
+            return res.status(200).json({
+                createService,
+                message: 'Success connect jasa kirim to cart items',
+            });
         }
-
-        const updateCartItems = await prisma.cartItem.update({
-            where: {
-                id: cartItems.id
-            },
-            data: {
-                jasaKirimId: jasaKirim.id,
-            },
-            include: {
-                product: true,
-                jasaKirim: true
-            }
-        })
-
-        res.status(200).json({
-            updateCartItems,
-            message: 'success connect jasakirim to cartitems'
-        })
     } catch (error) {
-        console.error('failed connect jasakirim to cartitems', error);
+        console.error('Failed connect jasa kirim to cart items', error);
         res.status(500).json({
-            message: 'failed connect jasakirim to cartitems'
-        })
+            message: 'Failed connect jasa kirim to cart items',
+        });
     }
-}
+};
 
 exports.midtransPayment = async (req, res) => {
     const transactionData = {
         transaction_details: {
-            order_id: 'order-id-1',
-            gross_amount: 10000,
+            order_id: "ORDER-109",
+            gross_amount: 20000
+        },
+        item_details: [
+            {
+                id: "ITEM1",
+                price: 10000,
+                quantity: 1,
+                name: "Midtrans Bear",
+                brand: "Midtrans",
+                category: "Toys",
+                merchant_name: "Midtrans",
+                url: "http://toko/toko1?item=abc"
+            },
+            {
+                id: "ITEM2",
+                price: 10000,
+                quantity: 1,
+                name: "Midtrans Bear",
+                brand: "Midtrans",
+                category: "Toys",
+                merchant_name: "Midtrans",
+                url: "http://toko/toko1?item=abc"
+            }
+        ],
+        customer_details: {
+            first_name: "cus",
+            email: "test@midtrans.com",
+            phone: "+628123456",
+            billing_address: {
+                first_name: "cus ads",
+                email: "test@midtrans.com",
+                phone: "081 2233 44-55",
+                address: "Sudirman",
+                city: "Jakarta",
+                postal_code: "12190",
+                country_code: "IDN"
+            },
+            shipping_address: {
+                first_name: "ship",
+                email: "test@midtrans.com",
+                phone: "0 8128-75 7-9338",
+                address: "Sudirman",
+                city: "Jakarta",
+                postal_code: "12190",
+                country_code: "IDN"
+            }
         },
     }
 
