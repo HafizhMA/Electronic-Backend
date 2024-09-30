@@ -87,4 +87,23 @@ model Checkout {
   createdAt          DateTime          @default(now())
   AlamatPengiriman   AlamatPengiriman? @relation(fields: [alamatPengirimanId], references: [id], onDelete: SetNull)
   alamatPengirimanId String?
+  pesan              String?
+  payment            Payment[]
+}
+
+model Payment {
+  id            String        @id @default(uuid())
+  checkoutId    String
+  checkout      Checkout      @relation(fields: [checkoutId], references: [id], onDelete: Cascade)
+  paymentType   String
+  transactionId String
+  paymentStatus PaymentStatus @default(PENDING)
+  paymentUrl    String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
 }
