@@ -441,7 +441,7 @@ exports.connectJasaCart = async (req, res) => {
 exports.midtransPayment = async (req, res) => {
     const transactionData = {
         transaction_details: {
-            order_id: "ORDER-109",
+            order_id: "ORDER-110",
             gross_amount: 20000
         },
         item_details: [
@@ -510,6 +510,32 @@ exports.midtransPayment = async (req, res) => {
         })
     }
 
+}
+
+exports.postPesan = async (req, res) => {
+    const { data } = req.body;
+
+    console.log('data', data);
+
+    try {
+        await prisma.checkout.update({
+            where: {
+                id: data.id
+            },
+            data: {
+                pesan: data.pesan
+            }
+        })
+
+        res.status(200).json({
+            message: 'success post pesan'
+        })
+    } catch (error) {
+        console.error('failed post pesan', error);
+        res.status(500).json({
+            message: 'failed post pesan'
+        })
+    }
 }
 
 

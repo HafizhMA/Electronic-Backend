@@ -12,6 +12,7 @@ router.get('/getProvince', checkoutController.getProvinceOngkir);
 router.get('/getProvinceSatuan', checkoutController.getProvinceOngkirSatuan);
 router.post('/getOngkir', checkoutController.getOngkir);
 router.post('/connectJasaCart', checkoutController.connectJasaCart);
+router.post('/postPesan', checkoutController.postPesan);
 router.post('/getPayment', checkoutController.midtransPayment);
 
 module.exports = router;
