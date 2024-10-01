@@ -334,70 +334,138 @@ exports.getCheckout = async (req, res) => {
   }
 
   try {
-    // Cek jika sudah ada checkout untuk userId ini, jika ada hapus
+    // Cek jika sudah ada checkout untuk userId ini
     const existingCheckout = await prisma.checkout.findFirst({
       where: {
         userId: userId,
       },
+      include: {
+        payment: true, // Cek apakah ada payment
+      },
     });
 
     if (existingCheckout) {
-      // Hapus checkout yang lama
-      await prisma.checkout.delete({
-        where: { id: existingCheckout.id },
+      if (existingCheckout.payment && existingCheckout.payment.length > 0) {
+        // Jika checkout memiliki payment, buat checkout baru
+        const checkoutData = {
+          userId,
+          items: {
+            connect: items.map(item => ({ id: item.cartItemId })),
+          },
+        };
+
+        // Temukan alamat default untuk user ini
+        const alamat = await prisma.alamatPengiriman.findFirst({
+          where: {
+            userId: userId,
+            isDefault: true,
+          },
+        });
+
+        if (alamat) {
+          checkoutData.alamatPengirimanId = alamat.id;
+        }
+
+        // Buat checkout baru
+        const newCheckout = await prisma.checkout.create({
+          data: checkoutData,
+        });
+
+        // Update cart items dengan checkoutId yang baru
+        await prisma.cartItem.updateMany({
+          where: {
+            id: { in: items.map(item => item.cartItemId) },
+          },
+          data: {
+            checkoutId: newCheckout.id,
+          },
+        });
+
+        return res.status(200).json({
+          checkout: newCheckout,
+          message: 'Checkout success with new checkout because existing checkout has payment.',
+        });
+      } else {
+        // Jika checkout tidak memiliki payment, update checkout yang ada
+        const checkoutData = {
+          items: {
+            connect: items.map(item => ({ id: item.cartItemId })),
+          },
+        };
+
+        // Temukan alamat default untuk user ini
+        const alamat = await prisma.alamatPengiriman.findFirst({
+          where: {
+            userId: userId,
+            isDefault: true,
+          },
+        });
+
+        if (alamat) {
+          checkoutData.alamatPengirimanId = alamat.id;
+        }
+
+        // Update checkout yang ada
+        const updatedCheckout = await prisma.checkout.update({
+          where: {
+            id: existingCheckout.id,
+          },
+          data: checkoutData,
+        });
+
+        // Update cart items dengan checkoutId yang ada
+        await prisma.cartItem.updateMany({
+          where: {
+            id: { in: items.map(item => item.cartItemId) },
+          },
+          data: {
+            checkoutId: existingCheckout.id,
+          },
+        });
+
+        return res.status(200).json({
+          checkout: updatedCheckout,
+          message: 'Checkout updated successfully as it does not have payment.',
+        });
+      }
+    } else {
+      // Tidak ada checkout yang ditemukan, buat baru
+      const checkoutData = {
+        userId,
+        items: {
+          connect: items.map(item => ({ id: item.cartItemId })),
+        },
+      };
+
+      const alamat = await prisma.alamatPengiriman.findFirst({
+        where: {
+          userId: userId,
+          isDefault: true,
+        },
       });
 
-      // Update cart item untuk me-reset checkoutId ke null
+      if (alamat) {
+        checkoutData.alamatPengirimanId = alamat.id;
+      }
+
+      const checkout = await prisma.checkout.create({
+        data: checkoutData,
+      });
+
       await prisma.cartItem.updateMany({
         where: {
-          checkoutId: existingCheckout.id,
+          id: { in: items.map(item => item.cartItemId) },
         },
         data: {
-          checkoutId: null,
+          checkoutId: checkout.id,
         },
       });
+
+      return res.status(200).json({
+        checkout,
+        message: 'Checkout success with new checkout.',
+      });
     }
-
-    // Temukan alamat default untuk user ini
-    const alamat = await prisma.alamatPengiriman.findFirst({
-      where: {
-        userId: userId,          // Pastikan alamat ini milik user yang sesuai
-        isDefault: true
-      }
-    });
-
-    // Siapkan data checkout baru
-    const checkoutData = {
-      userId,
-      items: {
-        connect: items.map(item => ({ id: item.cartItemId })),
-      },
-    };
-
-    // Sertakan alamat hanya jika ditemukan
-    if (alamat) {
-      checkoutData.alamatPengirimanId = alamat.id;
-    }
-
-    // Buat checkout baru
-    const checkout = await prisma.checkout.create({
-      data: checkoutData,
-    });
-
-    // Update cart items dengan checkoutId yang baru
-    await prisma.cartItem.updateMany({
-      where: {
-        id: { in: items.map(item => item.cartItemId) },
-      },
-      data: {
-        checkoutId: checkout.id,
-      },
-    });
-
-    res.status(200).json({
-      checkout,
-      message: 'Checkout success',
-    });
   } catch (error) {
     console.error('Error during checkout', error);
     res.status(500).json({ message: 'Internal server error' });
@@ -405,13 +473,17 @@ exports.getCheckout = async (req, res) => {
 };
 
 
+
 exports.getProductCheckout = async (req, res) => {
   const { userId } = req.body;
 
   try {
-    const checkoutProduct = await prisma.checkout.findMany({
+    const checkoutProduct = await prisma.checkout.findFirst({
       where: {
-        userId
+        userId,
+      },
+      orderBy: {
+        createdAt: 'desc', // Ambil checkout terbaru
       },
       include: {
         items: {
@@ -422,28 +494,27 @@ exports.getProductCheckout = async (req, res) => {
                   include: {
                     AlamatPengiriman: {
                       where: {
-                        isDefault: true
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    })
+                        isDefault: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
 
-    res.status(200).json({
-      checkoutProduct,
-      message: 'successfully get checkout product'
-    })
+    if (!checkoutProduct) {
+      return res.status(404).json({ message: 'No checkout found.' });
+    }
+
+    res.status(200).json(checkoutProduct);
   } catch (error) {
-    console.error('failed get checkout product', error)
-    res.status(400).json({
-      msg: 'failed to get checkout product'
-    })
+    console.error('Error fetching product checkout', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
+};
 
-}
 //end checkout

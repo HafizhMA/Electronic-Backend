@@ -5,7 +5,7 @@ require('dotenv').config();
 
 const rajaOngkirUrl = 'https://api.rajaongkir.com/starter';
 const rajaOngkirKey = process.env.RAJAONGKIR_API_KEY;
-const serverKeyMidtrans = process.env.SERVER_KEY_MIDTRANS
+const serverKeyMidtrans = Buffer.from(process.env.SERVER_KEY_MIDTRANS).toString('base64');
 
 const getCityRajaOngkir = async () => {
     try {
@@ -439,53 +439,78 @@ exports.connectJasaCart = async (req, res) => {
 };
 
 exports.midtransPayment = async (req, res) => {
+    const { data } = req.body;
+
+    const itemDetail = data.item_details.map(items => ({
+        id: items.id,
+        price: items.hargaBarang - (items.hargaBarang * (items.diskon / 100)),
+        quantity: items.quantity,
+        name: items.namaBarang,
+        brand: items.kategori,
+        category: items.kategori,
+        merchant_name: items.user.username,
+        url: `http://127.0.0.1:5173/detail/${items.id}`
+    }))
+
+    const customer = await prisma.user.findFirst({
+        where: {
+            id: data.customerId
+        }, include: {
+            AlamatPengiriman: {
+                where: {
+                    isDefault: true
+                }
+            }
+        }
+    })
+
+    const services = await prisma.cartItem.findMany({
+        where: {
+            userId: data.customerId
+        }, include: { jasaKirim: true }
+    })
+
+    const allService = services.map(service => service.jasaKirim)
+
+    allService.forEach(service => {
+        itemDetail.push({
+            id: service.id,
+            price: service.ongkosKirim,
+            quantity: 1,
+            name: service.namaJasa,
+            brand: 'Logistics',
+            category: 'Shipping',
+            merchant_name: 'Shipping Provider',
+            url: 'shipping url'
+        });
+    });
+
     const transactionData = {
         transaction_details: {
-            order_id: "ORDER-110",
-            gross_amount: 20000
+            order_id: `order-${Math.floor(Math.random() * 10000000000)}`,
+            gross_amount: data.gross_Amount
         },
-        item_details: [
-            {
-                id: "ITEM1",
-                price: 10000,
-                quantity: 1,
-                name: "Midtrans Bear",
-                brand: "Midtrans",
-                category: "Toys",
-                merchant_name: "Midtrans",
-                url: "http://toko/toko1?item=abc"
-            },
-            {
-                id: "ITEM2",
-                price: 10000,
-                quantity: 1,
-                name: "Midtrans Bear",
-                brand: "Midtrans",
-                category: "Toys",
-                merchant_name: "Midtrans",
-                url: "http://toko/toko1?item=abc"
-            }
-        ],
+        item_details: itemDetail,
         customer_details: {
-            first_name: "cus",
-            email: "test@midtrans.com",
-            phone: "+628123456",
+            first_name: customer.username,
+            email: customer.email,
+            phone: customer.no_telp,
             billing_address: {
-                first_name: "cus ads",
-                email: "test@midtrans.com",
-                phone: "081 2233 44-55",
-                address: "Sudirman",
-                city: "Jakarta",
-                postal_code: "12190",
+                first_name: customer.username,
+                email: customer.email,
+                phone: customer.no_telp,
+                address: customer.AlamatPengiriman[0].alamat,
+                city: customer.AlamatPengiriman[0].kota,
+                postal_code: customer.AlamatPengiriman[0].kodePos,
                 country_code: "IDN"
             },
             shipping_address: {
-                first_name: "ship",
-                email: "test@midtrans.com",
-                phone: "0 8128-75 7-9338",
-                address: "Sudirman",
-                city: "Jakarta",
-                postal_code: "12190",
+                first_name: customer.username,
+                email: customer.email,
+                phone: customer.no_telp,
+                address: customer.AlamatPengiriman[0].alamat,
+                city: customer.AlamatPengiriman[0].kota,
+                postal_code: customer.AlamatPengiriman[0].kodePos,
                 country_code: "IDN"
             }
         },
@@ -497,25 +522,47 @@ exports.midtransPayment = async (req, res) => {
                 'Content-Type': 'application/json',
                 'Authorization': `Basic ${serverKeyMidtrans}`
             }
+        });
+
+        const dataPayment = await prisma.payment.create({
+            data: {
+                checkoutId: data.id,
+                transactionId: transactionData.transaction_details.order_id,
+                paymentUrl: response.data.redirect_url
+            }
+        })
+
+        await prisma.checkout.update({
+            where: {
+                id: data.id
+            },
+            data: {
+                purchasedItem: data.item_details
+            }
+        })
+
+        await prisma.cartItem.deleteMany({
+            where: {
+                userId: data.customerId
+            }
         })
 
         res.status(201).json({
             response: response.data,
-            message: 'success get payment midtrans'
-        })
+            dataPayment,
+            message: 'Success getting payment from Midtrans'
+        });
     } catch (error) {
-        console.error('Error creating transaction:', error);
+        console.error('Error creating transaction:', error.response?.data || error.message);
         res.status(501).json({
             message: 'Error creating transaction'
-        })
+        });
     }
 
 }
 
 exports.postPesan = async (req, res) => {
     const { data } = req.body;
-
-    console.log('data', data);
 
     try {
         await prisma.checkout.update({
