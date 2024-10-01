@@ -454,7 +454,7 @@ exports.midtransPayment = async (req, res) => {
 
     const customer = await prisma.user.findFirst({
         where: {
-            id: data.constumerId
+            id: data.customerId
         }, include: {
             AlamatPengiriman: {
                 where: {
@@ -466,7 +466,7 @@ exports.midtransPayment = async (req, res) => {
 
     const services = await prisma.cartItem.findMany({
         where: {
-            userId: data.constumerId
+            userId: data.customerId
         }, include: { jasaKirim: true }
     })
 
@@ -523,13 +523,27 @@ exports.midtransPayment = async (req, res) => {
                 'Authorization': `Basic ${serverKeyMidtrans}`
             }
         });
-        console.log(response.data);
 
         const dataPayment = await prisma.payment.create({
             data: {
                 checkoutId: data.id,
                 transactionId: transactionData.transaction_details.order_id,
                 paymentUrl: response.data.redirect_url
+            }
+        })
+
+        await prisma.checkout.update({
+            where: {
+                id: data.id
+            },
+            data: {
+                purchasedItem: data.item_details
+            }
+        })
+
+        await prisma.cartItem.deleteMany({
+            where: {
+                userId: data.customerId
             }
         })
 

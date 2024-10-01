@@ -89,6 +89,7 @@ model Checkout {
   alamatPengirimanId String?
   pesan              String?
   payment            Payment[]
+  purchasedItem      Json?
 }
 
 model Payment {
