@@ -95,7 +95,7 @@ model Payment {
   id            String        @id @default(uuid())
   checkoutId    String
   checkout      Checkout      @relation(fields: [checkoutId], references: [id], onDelete: Cascade)
-  paymentType   String
+  paymentType   String?
   transactionId String
   paymentStatus PaymentStatus @default(PENDING)
   paymentUrl    String?
