@@ -334,102 +334,116 @@ exports.getCheckout = async (req, res) => {
   }
 
   try {
-    // Cek jika sudah ada checkout untuk userId ini
-    const existingCheckout = await prisma.checkout.findFirst({
+    // Check for existing checkout without payments
+    const existingNullPaymentCheckout = await prisma.checkout.findFirst({
       where: {
         userId: userId,
-      },
-      include: {
-        payment: true, // Cek apakah ada payment
+        payment: {
+          none: {}, // Check for checkouts that have no payments
+        },
       },
     });
 
-    if (existingCheckout) {
-      if (existingCheckout.payment && existingCheckout.payment.length > 0) {
-        // Jika checkout memiliki payment, buat checkout baru
-        const checkoutData = {
-          userId,
-          items: {
-            connect: items.map(item => ({ id: item.cartItemId })),
-          },
-        };
+    if (existingNullPaymentCheckout) {
+      // If an existing checkout without payments is found, delete it
+      await prisma.checkout.delete({
+        where: {
+          id: existingNullPaymentCheckout.id,
+        },
+      });
 
-        // Temukan alamat default untuk user ini
-        const alamat = await prisma.alamatPengiriman.findFirst({
-          where: {
-            userId: userId,
-            isDefault: true,
-          },
-        });
+      // Create a new checkout since the previous one was deleted
+      const checkoutData = {
+        userId,
+        items: {
+          connect: items.map(item => ({ id: item.cartItemId })),
+        },
+      };
 
-        if (alamat) {
-          checkoutData.alamatPengirimanId = alamat.id;
-        }
+      // Find the default address for this user
+      const alamat = await prisma.alamatPengiriman.findFirst({
+        where: {
+          userId: userId,
+          isDefault: true,
+        },
+      });
 
-        // Buat checkout baru
-        const newCheckout = await prisma.checkout.create({
-          data: checkoutData,
-        });
-
-        // Update cart items dengan checkoutId yang baru
-        await prisma.cartItem.updateMany({
-          where: {
-            id: { in: items.map(item => item.cartItemId) },
-          },
-          data: {
-            checkoutId: newCheckout.id,
-          },
-        });
-
-        return res.status(200).json({
-          checkout: newCheckout,
-          message: 'Checkout success with new checkout because existing checkout has payment.',
-        });
-      } else {
-        // Jika checkout tidak memiliki payment, update checkout yang ada
-        const checkoutData = {
-          items: {
-            connect: items.map(item => ({ id: item.cartItemId })),
-          },
-        };
-
-        // Temukan alamat default untuk user ini
-        const alamat = await prisma.alamatPengiriman.findFirst({
-          where: {
-            userId: userId,
-            isDefault: true,
-          },
-        });
-
-        if (alamat) {
-          checkoutData.alamatPengirimanId = alamat.id;
-        }
-
-        // Update checkout yang ada
-        const updatedCheckout = await prisma.checkout.update({
-          where: {
-            id: existingCheckout.id,
-          },
-          data: checkoutData,
-        });
-
-        // Update cart items dengan checkoutId yang ada
-        await prisma.cartItem.updateMany({
-          where: {
-            id: { in: items.map(item => item.cartItemId) },
-          },
-          data: {
-            checkoutId: existingCheckout.id,
-          },
-        });
-
-        return res.status(200).json({
-          checkout: updatedCheckout,
-          message: 'Checkout updated successfully as it does not have payment.',
-        });
+      if (alamat) {
+        checkoutData.alamatPengirimanId = alamat.id;
       }
+
+      const newCheckout = await prisma.checkout.create({
+        data: checkoutData,
+      });
+
+      // Update cart items with the new checkoutId
+      await prisma.cartItem.updateMany({
+        where: {
+          id: { in: items.map(item => item.cartItemId) },
+        },
+        data: {
+          checkoutId: newCheckout.id,
+        },
+      });
+
+      return res.status(200).json({
+        checkout: newCheckout,
+        message: 'Checkout created after deleting previous checkout with null payment.',
+      });
+    }
+
+    // If no checkout without payment exists, check for one with payment
+    const existingPaymentCheckout = await prisma.checkout.findFirst({
+      where: {
+        userId: userId,
+        payment: {
+          some: {}, // Check for checkouts that have any payments
+        },
+      },
+    });
+
+    if (existingPaymentCheckout) {
+      // If the checkout has a payment, create a new checkout
+      const checkoutData = {
+        userId,
+        items: {
+          connect: items.map(item => ({ id: item.cartItemId })),
+        },
+      };
+
+      // Find the default address for this user
+      const alamat = await prisma.alamatPengiriman.findFirst({
+        where: {
+          userId: userId,
+          isDefault: true,
+        },
+      });
+
+      if (alamat) {
+        checkoutData.alamatPengirimanId = alamat.id;
+      }
+
+      // Create a new checkout
+      const newCheckout = await prisma.checkout.create({
+        data: checkoutData,
+      });
+
+      // Update cart items with the new checkoutId
+      await prisma.cartItem.updateMany({
+        where: {
+          id: { in: items.map(item => item.cartItemId) },
+        },
+        data: {
+          checkoutId: newCheckout.id,
+        },
+      });
+
+      return res.status(200).json({
+        checkout: newCheckout,
+        message: 'Checkout success with a new checkout because the existing checkout has a payment.',
+      });
     } else {
-      // Tidak ada checkout yang ditemukan, buat baru
+      // No existing checkout found, create a new one
       const checkoutData = {
         userId,
         items: {
@@ -463,7 +477,7 @@ exports.getCheckout = async (req, res) => {
 
       return res.status(200).json({
         checkout,
-        message: 'Checkout success with new checkout.',
+        message: 'Checkout success with a new checkout.',
       });
     }
   } catch (error) {
@@ -471,8 +485,6 @@ exports.getCheckout = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
-
-
 
 exports.getProductCheckout = async (req, res) => {
   const { userId } = req.body;

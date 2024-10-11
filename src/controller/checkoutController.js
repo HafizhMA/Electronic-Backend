@@ -441,16 +441,21 @@ exports.connectJasaCart = async (req, res) => {
 exports.midtransPayment = async (req, res) => {
     const { data } = req.body;
 
-    const itemDetail = data.item_details.map(items => ({
-        id: items.id,
-        price: items.hargaBarang - (items.hargaBarang * (items.diskon / 100)),
-        quantity: items.quantity,
-        name: items.namaBarang,
-        brand: items.kategori,
-        category: items.kategori,
-        merchant_name: items.user.username,
-        url: `http://127.0.0.1:5173/detail/${items.id}`
-    }))
+    const itemDetail = data.item_details.map((items, index) => {
+        const quantity = data.quantity[index];
+        const discountedPrice = items.hargaBarang - (items.hargaBarang * (items.diskon / 100));
+
+        return {
+            id: items.id,
+            price: discountedPrice,
+            quantity: quantity,
+            name: items.namaBarang,
+            brand: items.kategori,
+            category: items.kategori,
+            merchant_name: items.user.username,
+            url: `http://127.0.0.1:5173/detail/${items.id}`
+        }
+    });
 
     const customer = await prisma.user.findFirst({
         where: {
@@ -466,11 +471,12 @@ exports.midtransPayment = async (req, res) => {
 
     const services = await prisma.cartItem.findMany({
         where: {
-            userId: data.customerId
-        }, include: { jasaKirim: true }
-    })
+            checkoutId: data.id,
+        },
+        include: { jasaKirim: true }
+    });
 
-    const allService = services.map(service => service.jasaKirim)
+    const allService = services.map(service => service.jasaKirim);
 
     allService.forEach(service => {
         itemDetail.push({
@@ -516,6 +522,18 @@ exports.midtransPayment = async (req, res) => {
         },
     }
 
+    await prisma.checkout.update({
+        where: {
+            id: data.id
+        },
+        data: {
+            purchasedItem: {
+                data: data.item_details,
+                services: allService
+            }
+        }
+    })
+
     try {
         const response = await axios.post('https://app.sandbox.midtrans.com/snap/v1/transactions', transactionData, {
             headers: {
@@ -532,20 +550,29 @@ exports.midtransPayment = async (req, res) => {
             }
         })
 
-        await prisma.checkout.update({
+        const cartItems = await prisma.cartItem.findMany({
             where: {
-                id: data.id
+                checkoutId: data.id
             },
-            data: {
-                purchasedItem: data.item_details
+            include: {
+                jasaKirim: true
             }
-        })
+        });
+
+        for (const cartItem of cartItems) {
+            if (cartItem.jasaKirimId) {
+                await prisma.jasaKirim.delete({
+                    where: { id: cartItem.jasaKirimId }
+                });
+            }
+        }
 
         await prisma.cartItem.deleteMany({
             where: {
                 userId: data.customerId
             }
-        })
+        });
+
 
         res.status(201).json({
             response: response.data,

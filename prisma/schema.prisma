@@ -76,7 +76,7 @@ model CartItem {
   checkoutId  String?
   checkout    Checkout?  @relation(fields: [checkoutId], references: [id], onDelete: SetNull)
   jasaKirimId String?
-  jasaKirim   JasaKirim? @relation(fields: [jasaKirimId], references: [id], onDelete: SetNull) // Setiap item memiliki jasa kirim
+  jasaKirim   JasaKirim? @relation(fields: [jasaKirimId], references: [id], onDelete: Cascade)
 }
 
 model Checkout {
@@ -97,7 +97,7 @@ model Payment {
   checkoutId    String
   checkout      Checkout      @relation(fields: [checkoutId], references: [id], onDelete: Cascade)
   paymentType   String?
-  transactionId String
+  transactionId String        @unique
   paymentStatus PaymentStatus @default(PENDING)
   paymentUrl    String?
   createdAt     DateTime      @default(now())
