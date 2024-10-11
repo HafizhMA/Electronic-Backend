@@ -32,7 +32,7 @@ exports.checkStatusPayment = async (req, res) => {
     const { transaction_status, order_id, payment_type } = req.body
 
     try {
-        if (transaction_status === 'settlement') {
+        if (transaction_status === 'settlement' || transaction_status === 'capture') {
             const findOrder = await prisma.payment.update({
                 where: {
                     transactionId: order_id
