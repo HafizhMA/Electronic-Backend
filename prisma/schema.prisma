@@ -97,7 +97,7 @@ model Payment {
   checkoutId    String
   checkout      Checkout      @relation(fields: [checkoutId], references: [id], onDelete: Cascade)
   paymentType   String?
-  transactionId String
+  transactionId String        @unique
   paymentStatus PaymentStatus @default(PENDING)
   paymentUrl    String?
   createdAt     DateTime      @default(now())

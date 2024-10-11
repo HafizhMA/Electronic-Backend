@@ -22,6 +22,9 @@ app.use(userRoutes);
 const checkoutRoutes = require("./routes/checkoutRoutes");
 app.use(checkoutRoutes);
 
+const paymentHistoryRoutes = require("./routes/paymentHistoryRoutes");
+app.use(paymentHistoryRoutes);
+
 app.get("/api", (req, res) => {
   res.send("hallo");
 });

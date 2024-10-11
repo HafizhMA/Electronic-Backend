@@ -441,16 +441,21 @@ exports.connectJasaCart = async (req, res) => {
 exports.midtransPayment = async (req, res) => {
     const { data } = req.body;
 
-    const itemDetail = data.item_details.map(items => ({
-        id: items.id,
-        price: items.hargaBarang - (items.hargaBarang * (items.diskon / 100)),
-        quantity: items.quantity,
-        name: items.namaBarang,
-        brand: items.kategori,
-        category: items.kategori,
-        merchant_name: items.user.username,
-        url: `http://127.0.0.1:5173/detail/${items.id}`
-    }))
+    const itemDetail = data.item_details.map((items, index) => {
+        const quantity = data.quantity[index];
+        const discountedPrice = items.hargaBarang - (items.hargaBarang * (items.diskon / 100));
+
+        return {
+            id: items.id,
+            price: discountedPrice,
+            quantity: quantity,
+            name: items.namaBarang,
+            brand: items.kategori,
+            category: items.kategori,
+            merchant_name: items.user.username,
+            url: `http://127.0.0.1:5173/detail/${items.id}`
+        }
+    });
 
     const customer = await prisma.user.findFirst({
         where: {
