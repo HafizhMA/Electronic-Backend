@@ -7,12 +7,12 @@ require('dotenv').config();
 const serverKeyMidtrans = Buffer.from(process.env.SERVER_KEY_MIDTRANS).toString('base64');
 
 exports.checkoutPayment = async (req, res) => {
+    const { userId } = req.body;
+
     try {
         const checkouts = await prisma.checkout.findMany({
             where: {
-                payment: {
-                    some: {}
-                }
+                userId: userId,
             },
             include: {
                 payment: true,

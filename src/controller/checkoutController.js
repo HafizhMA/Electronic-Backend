@@ -457,6 +457,22 @@ exports.midtransPayment = async (req, res) => {
         }
     });
 
+    const itemDetails = data.item_details.map((items, index) => {
+        const quantity = data.quantity[index];
+        const discountedPrice = items.hargaBarang - (items.hargaBarang * (items.diskon / 100));
+
+        return {
+            id: items.id,
+            price: discountedPrice,
+            quantity: quantity,
+            name: items.namaBarang,
+            brand: items.kategori,
+            category: items.kategori,
+            merchant_name: items.user.username,
+            url: `http://127.0.0.1:5173/detail/${items.id}`
+        }
+    });
+
     const customer = await prisma.user.findFirst({
         where: {
             id: data.customerId
@@ -529,11 +545,11 @@ exports.midtransPayment = async (req, res) => {
         data: {
             purchasedItem: {
                 data: data.item_details,
+                product: itemDetails,
                 services: allService
             }
         }
     })
-
     try {
         const response = await axios.post('https://app.sandbox.midtrans.com/snap/v1/transactions', transactionData, {
             headers: {
