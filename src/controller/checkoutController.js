@@ -507,6 +507,14 @@ exports.midtransPayment = async (req, res) => {
         });
     });
 
+    const purchasedItemProduct = itemDetails.map(product => {
+        const matchingData = data.item_details.find(detail => detail.id === product.id);
+        return {
+            ...product,
+            img: matchingData.img
+        };
+    });
+
     const transactionData = {
         transaction_details: {
             order_id: `order-${Math.floor(Math.random() * 10000000000)}`,
@@ -545,7 +553,7 @@ exports.midtransPayment = async (req, res) => {
         data: {
             purchasedItem: {
                 data: data.item_details,
-                product: itemDetails,
+                product: purchasedItemProduct,
                 services: allService
             }
         }
