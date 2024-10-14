@@ -17,6 +17,9 @@ exports.checkoutPayment = async (req, res) => {
             include: {
                 payment: true,
             },
+            orderBy: {
+                createdAt: 'desc'
+            }
         });
         res.status(200).json({
             checkouts,
