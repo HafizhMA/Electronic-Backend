@@ -552,7 +552,6 @@ exports.midtransPayment = async (req, res) => {
         },
         data: {
             purchasedItem: {
-                data: data.item_details,
                 product: purchasedItemProduct,
                 services: allService
             }
