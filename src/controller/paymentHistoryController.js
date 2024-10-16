@@ -21,6 +21,7 @@ exports.checkoutPayment = async (req, res) => {
                 createdAt: 'desc'
             }
         });
+
         res.status(200).json({
             checkouts,
             message: 'success get checkout with payment'
