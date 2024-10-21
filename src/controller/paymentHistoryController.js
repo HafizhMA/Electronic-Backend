@@ -68,3 +68,26 @@ exports.checkStatusPayment = async (req, res) => {
     }
 
 }
+
+exports.getOneHistoryCheckout = async (req, res) => {
+    const { id } = req.body;
+
+    try {
+        const detailCheckout = await prisma.checkout.findFirst({
+            where: {
+                id
+            }, include: {
+                AlamatPengiriman: true,
+                payment: true
+            }
+        })
+
+        res.status(200).json({
+            detailCheckout,
+            message: 'success get detail checkout'
+        })
+    } catch (error) {
+        console.log('failed get detail checkout', error);
+        res.status(500).json({ message: 'failed get detail checkout' });
+    }
+}
