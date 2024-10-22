@@ -38,6 +38,67 @@ const getProvinceRajaOngkir = async () => {
     }
 }
 
+exports.checkoutOneProduct = async (req, res) => {
+    const { data } = req.body;
+
+    try {
+        const createCart = await prisma.cartItem.create({
+            data: {
+                userId: data.userId,
+                productId: data.productId,
+                quantity: 1
+            }
+        });
+
+        const defaultAlamat = await prisma.alamatPengiriman.findFirst({
+            where: {
+                userId: data.userId,
+                isDefault: true
+            }
+        });
+
+        if (defaultAlamat) {
+            const createCheckout = await prisma.checkout.create({
+                data: {
+                    userId: data.userId,
+                    items: {
+                        connect: {
+                            id: createCart.id
+                        },
+                    },
+                    alamatPengirimanId: defaultAlamat.id
+                }
+            });
+
+            return res.status(200).json({
+                createCheckout,
+                message: 'success create checkout'
+            })
+        }
+
+        const createCheckout = await prisma.checkout.create({
+            data: {
+                userId: data.userId,
+                items: {
+                    connect: {
+                        id: createCart.id
+                    },
+                },
+            }
+        });
+
+        return res.status(200).json({
+            createCheckout,
+            message: 'success create checkout'
+        })
+    } catch (error) {
+        console.log('error create checkout', error);
+        return res.status(500).json({
+            message: 'Internal Server Error'
+        });
+    }
+}
+
 exports.postAlamat = async (req, res) => {
     const { userId, alamat, kotaId, provinsiId, kodePos } = req.body;
 
@@ -592,7 +653,7 @@ exports.midtransPayment = async (req, res) => {
 
         await prisma.cartItem.deleteMany({
             where: {
-                userId: data.customerId
+                checkoutId: data.id
             }
         });
 
