@@ -1,5 +1,6 @@
 const express = require('express');
 const checkoutController = require("../controller/checkoutController");
+const authenticateToken = require('../middlewares/protectRouteMiddleware');
 const router = express.Router();
 
 router.post('/createAlamat', checkoutController.postAlamat);
@@ -13,7 +14,7 @@ router.get('/getProvinceSatuan', checkoutController.getProvinceOngkirSatuan);
 router.post('/getOngkir', checkoutController.getOngkir);
 router.post('/connectJasaCart', checkoutController.connectJasaCart);
 router.post('/postPesan', checkoutController.postPesan);
-router.post('/getPayment', checkoutController.midtransPayment);
+router.post('/getPayment', authenticateToken, checkoutController.midtransPayment);
 router.post('/buyProduct', checkoutController.checkoutOneProduct);
 
 module.exports = router;
