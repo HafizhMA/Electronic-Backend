@@ -10,8 +10,8 @@ exports.checkoutPayment = async (req, res) => {
         const checkouts = await prisma.checkout.findMany({
             where: {
                 userId: userId,
-                payment: {
-                    some: {}
+                purchasedItem: {
+                    not: null
                 }
             },
             include: {
