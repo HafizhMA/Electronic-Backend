@@ -3,9 +3,6 @@ const prisma = new PrismaClient();
 const axios = require('axios');
 require('dotenv').config();
 
-
-const serverKeyMidtrans = Buffer.from(process.env.SERVER_KEY_MIDTRANS).toString('base64');
-
 exports.checkoutPayment = async (req, res) => {
     const { userId } = req.body;
 
@@ -13,6 +10,9 @@ exports.checkoutPayment = async (req, res) => {
         const checkouts = await prisma.checkout.findMany({
             where: {
                 userId: userId,
+                purchasedItem: {
+                    not: null
+                }
             },
             include: {
                 payment: true,
