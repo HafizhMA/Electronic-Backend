@@ -17,6 +17,7 @@ model User {
   username             String?            @unique
   no_telp              String?
   token_reset_password String?
+  isVerified           Boolean            @default(false)
   cartItems            CartItem[]
   products             Product[]
   Checkout             Checkout[]
