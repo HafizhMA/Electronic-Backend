@@ -62,6 +62,7 @@ model Product {
   diskon           Int
   cartItems        CartItem[]
   userId           String
+  terjual          Int        @default(0)
   user             User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
