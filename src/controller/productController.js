@@ -120,6 +120,9 @@ exports.searchProduct = async (req, res) => {
           mode: 'insensitive',
         },
       },
+      include: {
+        user: true
+      }
     });
 
     if (products.length === 0) {

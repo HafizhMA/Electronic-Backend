@@ -17,6 +17,7 @@ model User {
   username             String?            @unique
   no_telp              String?
   token_reset_password String?
+  isVerified           Boolean            @default(false)
   cartItems            CartItem[]
   products             Product[]
   Checkout             Checkout[]
@@ -62,6 +63,7 @@ model Product {
   diskon           Int
   cartItems        CartItem[]
   userId           String
+  terjual          Int        @default(0)
   user             User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
