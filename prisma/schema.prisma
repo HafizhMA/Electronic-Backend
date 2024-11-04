@@ -17,6 +17,7 @@ model User {
   username             String?            @unique
   no_telp              String?
   token_reset_password String?
+  foto_profile         String             @default("https://img.freepik.com/premium-vector/question-mark-person-head-icon-as-unknown-secret-anonym-user-profile-doubt-secret-brain-mind_101884-2200.jpg?semt=ais_hybrid")
   isVerified           Boolean            @default(false)
   cartItems            CartItem[]
   products             Product[]
