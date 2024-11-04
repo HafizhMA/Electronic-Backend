@@ -249,7 +249,7 @@ exports.updatePassword = async (req, res) => {
   }
 };
 
-exports.getUserLogin = async () => {
+exports.getUserLogin = async (req, res) => {
   const { userId } = req.body;
 
   try {
