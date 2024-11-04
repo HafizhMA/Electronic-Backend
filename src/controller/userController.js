@@ -249,4 +249,25 @@ exports.updatePassword = async (req, res) => {
   }
 };
 
+exports.getUserLogin = async () => {
+  const { userId } = req.body;
 
+  try {
+    const user = await prisma.user.findFirst({
+      where: {
+        id: userId
+      }
+    })
+
+    res.status(200).json({
+      user,
+      message: 'suuccess get data user login'
+    })
+
+  } catch (error) {
+    console.log('failed get user login', error);
+    res.status(500).json({
+      message: 'failed get user login'
+    })
+  }
+}
