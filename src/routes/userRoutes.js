@@ -11,5 +11,6 @@ router.post("/forgot-password", userController.forgotPassword);
 router.post("/check-token", userController.checkToken);
 router.post("/update-password/:token", userController.updatePassword);
 router.post("/userLogin", userController.getUserLogin);
+router.post("/image_profile", userController.uplaodImage);
 
 module.exports = router;
