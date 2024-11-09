@@ -271,3 +271,20 @@ exports.getUserLogin = async (req, res) => {
     })
   }
 }
+
+exports.uplaodImage = async (req, res) => {
+  const { userId, img_url } = req.body;
+
+  const user = await prisma.user.update({
+    where: {
+      id: userId
+    },
+    data: {
+      foto_profile: img_url
+    }
+  })
+
+  res.status(200).json({
+    message: 'berhasil upadte image'
+  });
+}
