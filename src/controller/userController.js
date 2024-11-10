@@ -273,18 +273,26 @@ exports.getUserLogin = async (req, res) => {
 }
 
 exports.uplaodImage = async (req, res) => {
-  const { userId, img_url } = req.body;
+  const { userId, imgUrl } = req.body;
 
-  const user = await prisma.user.update({
-    where: {
-      id: userId
-    },
-    data: {
-      foto_profile: img_url
-    }
-  })
+  try {
+    const user = await prisma.user.update({
+      where: {
+        id: userId
+      },
+      data: {
+        foto_profile: imgUrl
+      }
+    })
 
-  res.status(200).json({
-    message: 'berhasil upadte image'
-  });
+    res.status(200).json({
+      message: 'success upadte image'
+    });
+  } catch (error) {
+    console.log('failed update image');
+    res.status(500).json({
+      message: 'failed upload image'
+    })
+  }
+
 }
