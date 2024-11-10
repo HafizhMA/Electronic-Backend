@@ -12,5 +12,6 @@ router.post("/check-token", userController.checkToken);
 router.post("/update-password/:token", userController.updatePassword);
 router.post("/userLogin", userController.getUserLogin);
 router.post("/image_profile", userController.uplaodImage);
+router.post("/update-user-data", userController.updateUserData);
 
 module.exports = router;

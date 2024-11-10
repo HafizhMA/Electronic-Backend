@@ -296,3 +296,26 @@ exports.uplaodImage = async (req, res) => {
   }
 
 }
+
+exports.updateUserData = async (req, res) => {
+  const { data } = req.body;
+
+  try {
+    const user = await prisma.user.update({
+      where: {
+        id: data.userId
+      },
+      data: {
+        username: data.username,
+        no_telp: data.phoneNumber
+      }
+    })
+
+    res.status
+  } catch (error) {
+    console.log('failed update user data', error);
+    res.status(500).json({
+      message: 'failed update user data'
+    });
+  }
+}
