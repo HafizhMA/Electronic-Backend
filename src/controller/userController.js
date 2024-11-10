@@ -311,7 +311,9 @@ exports.updateUserData = async (req, res) => {
       }
     })
 
-    res.status
+    res.status(200).json({
+      message: 'success update user data'
+    })
   } catch (error) {
     console.log('failed update user data', error);
     res.status(500).json({
