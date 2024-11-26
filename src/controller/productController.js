@@ -1,6 +1,7 @@
 // src/controller/productController.js
 
 const { PrismaClient } = require("@prisma/client");
+const { connect } = require("../routes/productRoutes");
 const prisma = new PrismaClient();
 
 // Get all products
@@ -39,11 +40,31 @@ exports.getOneProduct = async (req, res) => {
 
 // Create a new product
 exports.createProduct = async (req, res) => {
-  const newProductData = req.body;
+  const { data } = req.body;
 
   try {
     const product = await prisma.product.create({
-      data: newProductData, // Use the entire data object directly
+      data: {
+        namaBarang: data.namaBarang,
+        deskripsiBarang: data.deskripsiBarang,
+        hargaBarang: parseInt(data.hargaBarang),
+        quantity: parseInt(data.quantity),
+        size: data.size,
+        color: data.color,
+        berat: parseInt(data.berat),
+        features: data.features,
+        capacity: data.capacity,
+        powerConsumption: data.powerConsumption,
+        dimensi: data.dimensi,
+        kategori: data.kategori,
+        diskon: parseInt(data.diskon),
+        img: data.img,
+        user: {
+          connect: {
+            id: data.userId
+          }
+        }
+      },
     });
 
     res.status(201).json({
